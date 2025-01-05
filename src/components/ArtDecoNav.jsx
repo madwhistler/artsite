@@ -1,190 +1,252 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Player } from '@lottiefiles/react-lottie-player';
 
-const usePreloadSVGs = () => {
-    const [svgContents, setSvgContents] = useState({})
+const getFileType = (filename) => {
+    const extension = filename.split('.').pop().toLowerCase();
+    switch (extension) {
+        case 'svg':
+            return 'svg';
+        case 'mp4':
+            return 'mp4';
+        case 'json':
+            return 'lottie';
+        default:
+            console.warn(`Unsupported file type: ${extension}`);
+            return null;
+    }
+};
+
+const usePreloadAnimations = (files) => {
+    const [animationContents, setAnimationContents] = useState({});
+    const [isLoading, setIsLoading] = useState(true);
+    const loadedRef = useRef(false);
 
     useEffect(() => {
-        const loadSvgs = async () => {
+        if (loadedRef.current) return;
+        loadedRef.current = true;
+
+        const loadAnimations = async () => {
+            setIsLoading(true);
             try {
-                const filenames = [
-                    '/circles-svg.txt',
-                    '/spirals-svg.txt',
-                    '/stretchy-svg.txt',
-                    '/rectangles-svg.txt'
-                ]
-
-                const loadedSvgs = await Promise.all(
-                    filenames.map(async (filename, index) => {
+                const loadedAnimations = await Promise.all(
+                    files.map(async (filename, index) => {
                         try {
-                            const response = await fetch(filename)
+                            const fileType = getFileType(filename);
+                            if (!fileType) return [index, null];
+
+                            const response = await fetch(filename);
                             if (!response.ok) {
-                                throw new Error(`HTTP error! status: ${response.status}`)
+                                throw new Error(`HTTP error! status: ${response.status}`);
                             }
-                            const text = await response.text()
-                            const parser = new DOMParser()
-                            const doc = parser.parseFromString(text, 'image/svg+xml')
-                            const svgElement = doc.documentElement
 
-                            svgElement.setAttribute('viewBox', '0 0 800 800')
-                            svgElement.setAttribute('preserveAspectRatio', 'xMidYMid meet')
+                            switch (fileType) {
+                                case 'svg': {
+                                    const text = await response.text();
+                                    const parser = new DOMParser();
+                                    const doc = parser.parseFromString(text, 'image/svg+xml');
+                                    const svgElement = doc.documentElement;
+                                    svgElement.setAttribute('viewBox', '0 0 800 800');
+                                    svgElement.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+                                    return [index, {
+                                        type: 'svg',
+                                        content: new XMLSerializer().serializeToString(doc)
+                                    }];
+                                }
 
-                            return [index, new XMLSerializer().serializeToString(doc)]
+                                case 'mp4':
+                                    return [index, {
+                                        type: 'mp4',
+                                        content: filename
+                                    }];
+
+                                case 'lottie': {
+                                    try {
+                                        const json = await response.json();
+                                        if (!json.v || typeof json.ip === 'undefined' || typeof json.op === 'undefined') {
+                                            console.warn('Potentially invalid Lottie JSON structure:', json);
+                                            return [index, null];
+                                        }
+                                        return [index, {
+                                            type: 'lottie',
+                                            content: json
+                                        }];
+                                    } catch (error) {
+                                        console.error('Error parsing Lottie JSON:', error);
+                                        return [index, null];
+                                    }
+                                }
+
+                                default:
+                                    return [index, null];
+                            }
                         } catch (error) {
-                            console.error(`Error loading SVG ${filename}:`, error)
-                            return [index, null]
+                            console.error(`Error loading animation ${filename}:`, error);
+                            return [index, null];
                         }
                     })
-                )
+                );
 
-                setSvgContents(Object.fromEntries(loadedSvgs))
+                setAnimationContents(Object.fromEntries(loadedAnimations));
             } catch (error) {
-                console.error('Error preloading SVGs:', error)
+                console.error('Error loading animations:', error);
+            } finally {
+                setIsLoading(false);
             }
-        }
+        };
 
-        loadSvgs()
-    }, [])
+        loadAnimations();
+    }, [files]);
 
-    return svgContents
-}
+    return animationContents;
+};
 
-const QuadrantAnimation = ({ index, svgContent }) => {
-    if (!svgContent) return null
+const QuadrantAnimation = ({ animation }) => {
+    if (!animation) return null;
 
-    return (
-        <div
-            className="w-full h-full flex items-center justify-center"
-            dangerouslySetInnerHTML={{ __html: svgContent }}
-        />
-    )
-}
+    const containerStyle = {
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+    };
 
-const BorderDecoration = () => (
-    <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100">
-        <path
-            className="stroke-amber-700 fill-none"
-            strokeWidth="0.5"
-            d="M20,0 Q50,10 80,0 L100,0 L100,20 Q90,50 100,80 L100,100 L80,100 Q50,90 20,100 L0,100 L0,80 Q10,50 0,20 L0,0 Z"
-        />
-        <path
-            className="stroke-amber-700 fill-none"
-            strokeWidth="0.25"
-            d="M25,10 Q50,18 75,10 L90,10 L90,25 Q82,50 90,75 L90,90 L75,90 Q50,82 25,90 L10,90 L10,75 Q18,50 10,25 L10,10 Z"
-        />
-    </svg>
-)
-
-const QuadrantBase = ({ children, index, position, requireInnerHover = true, svgContent }) => {
-    const [isExpanded, setIsExpanded] = useState(false)
-    const [innerHovered, setInnerHovered] = useState(false)
-
-    const positionClasses = {
-        'top-left': 'left-1/2 top-1/2 -translate-x-full -translate-y-full',
-        'top-right': 'left-1/2 top-1/2 -translate-y-full',
-        'bottom-left': 'left-1/2 top-1/2 -translate-x-full',
-        'bottom-right': 'left-1/2 top-1/2'
-    }
-
-    return (
-        <div className="relative w-full h-full" style={{ zIndex: isExpanded ? 40 : 0 }}>
-            <div
-                className="w-full h-full"
-                onMouseEnter={() => !requireInnerHover && setIsExpanded(true)}
-                onMouseLeave={(e) => {
-                    const expandedQuadrant = e.currentTarget.querySelector('.expanded-quadrant')
-                    if (expandedQuadrant && !expandedQuadrant.contains(e.relatedTarget)) {
-                        setIsExpanded(false)
-                        setInnerHovered(false)
-                    }
-                }}
-            >
+    switch (animation.type) {
+        case 'svg':
+            return (
                 <div
-                    className={`absolute inset-0 flex items-center justify-center border border-amber-700 bg-amber-50 hover:bg-amber-100 transition-colors duration-300 ${
-                        isExpanded ? 'opacity-0' : 'opacity-100'
-                    }`}
-                    onMouseEnter={() => {
-                        setInnerHovered(true)
-                        setIsExpanded(true)
-                    }}
-                    onMouseLeave={() => setInnerHovered(false)}
+                    style={containerStyle}
+                    dangerouslySetInnerHTML={{ __html: animation.content }}
+                />
+            );
+
+        case 'mp4':
+            return (
+                <div style={containerStyle}>
+                    <video
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                    >
+                        <source src={animation.content} type="video/mp4" />
+                    </video>
+                </div>
+            );
+
+        case 'lottie':
+            if (!animation.content) {
+                console.error('Lottie animation content is missing');
+                return null;
+            }
+            return (
+                <div style={containerStyle}>
+                    <Player
+                        autoplay
+                        loop
+                        src={animation.content}
+                        style={{ height: '100%', width: '100%' }}
+                    />
+                </div>
+            );
+
+        default:
+            return null;
+    }
+};
+
+const QuadrantBase = ({ children, position, animation }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+
+    return (
+        <div className="quadrant-wrapper" style={{ zIndex: isExpanded ? 40 : 0 }}>
+            <div onMouseLeave={() => setIsExpanded(false)}>
+                <div
+                    className="quadrant-base"
+                    onMouseEnter={() => setIsExpanded(true)}
                 >
-                    <BorderDecoration />
-                    <div className="flex-center-all z-10">
-                        {children}
-                    </div>
+                    {children}
                 </div>
 
                 {isExpanded && (
                     <div
-                        className={`expanded-quadrant fixed w-96 h-96 ${positionClasses[position]} flex items-center justify-center bg-amber-50 transition-all duration-300`}
+                        className={`expanded-quadrant quadrant-position-${position}`}
                         style={{ zIndex: 50 }}
+                        ref={el => {
+                            if (el) {
+                                const rect = el.getBoundingClientRect();
+                                console.log(`${position} expanded quadrant:`, {
+                                    left: rect.left,
+                                    top: rect.top,
+                                    right: rect.right,
+                                    bottom: rect.bottom
+                                });
+                            }
+                        }}
                     >
-                        <div className="relative w-full h-full">
-                            <div className="absolute inset-0 pointer-events-none">
-                                <QuadrantAnimation index={index} svgContent={svgContent} />
+                        <div className="animation-container">
+                            <div className="animation-wrapper">
+                                <QuadrantAnimation animation={animation} />
                             </div>
-                            <div className="absolute inset-0 grid grid-cols-2 grid-rows-2" />
                         </div>
                     </div>
                 )}
             </div>
         </div>
-    )
-}
+    );
+};
 
 export const ArtDecoNav = () => {
-    const preloadedSVGs = usePreloadSVGs();
-    const [hoveredQuadrant, setHoveredQuadrant] = useState(null);
-
     const quadrantConfig = [
         {
             id: 'Creation',
             title: 'Creation',
             position: 'top-left',
-            animationIndex: 0,
-            requireInnerHover: true
+            animationFile: '/circles.svg'
         },
         {
             id: 'Giving',
             title: 'Giving',
             position: 'top-right',
-            animationIndex: 1,
-            requireInnerHover: true
+            animationFile: '/vines.mp4'
         },
         {
             id: 'Connections',
             title: 'Connections',
             position: 'bottom-left',
-            animationIndex: 2,
-            requireInnerHover: true
+            animationFile: '/rectangles.svg'
         },
         {
             id: 'Sustaining',
             title: 'Sustaining',
             position: 'bottom-right',
-            animationIndex: 3,
-            requireInnerHover: true
+            animationFile: '/infinity-loop.json'
         }
     ];
 
+    const animationFiles = quadrantConfig.map(config => config.animationFile);
+    const preloadedAnimations = usePreloadAnimations(animationFiles);
+    const [hoveredQuadrant, setHoveredQuadrant] = useState(null);
+
     return (
-        <div className="fixed inset-0 flex-center bg-slate-50">
-            <div className="screen-center w-96 h-96 bg-amber-50 rounded-lg shadow-lg">
-                <div className="w-full h-full grid grid-cols-2 grid-rows-2"
-                     onMouseLeave={() => setHoveredQuadrant(null)}>
-                    {quadrantConfig.map(({ id, title, position, animationIndex, requireInnerHover }) => (
+        <div className="nav-container">
+            <div className="nav-grid">
+                <div
+                    className="nav-grid-inner"
+                    onMouseLeave={() => setHoveredQuadrant(null)}
+                >
+                    {quadrantConfig.map((config, index) => (
                         <div
-                            key={id}
-                            onMouseEnter={() => setHoveredQuadrant(id)}
+                            key={config.id}
+                            onMouseEnter={() => setHoveredQuadrant(config.id)}
                         >
                             <QuadrantBase
-                                position={position}
-                                index={animationIndex}
-                                requireInnerHover={requireInnerHover}
-                                svgContent={preloadedSVGs[animationIndex]}
-                                isHovered={hoveredQuadrant === id}
+                                position={config.position}
+                                animation={preloadedAnimations[index]}
+                                isHovered={hoveredQuadrant === config.id}
                             >
-                                <span className="text-lg font-serif text-emerald-700 text-center">{title}</span>
+                                <span className="quadrant-title">{config.title}</span>
                             </QuadrantBase>
                         </div>
                     ))}
