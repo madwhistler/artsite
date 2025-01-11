@@ -1,136 +1,152 @@
-:root {
-  --background-color: #000000;
-  --text-color: #ffffff;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-body {
-  margin: 0;
-  padding: 0;
-  min-height: 100vh;
-  background-color: var(--background-color);
-  color: var(--text-color);
-  font-family: system-ui, -apple-system, sans-serif;
-}
-
-/* Navigation Layout */
-.nav-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.nav-grid {
-  width: 24rem;
-  height: 24rem;
-  position: relative;
-  overflow: visible;
-}
-
-.nav-grid-inner {
-  width: 100%;
-  height: 100%;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  grid-template-rows: repeat(2, 1fr);
-  overflow: visible;
-}
-
-/* Quadrant Styling */
-.quadrant-wrapper {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
-.quadrant-base {
-  position: absolute;
-  inset: -1px;  /* Slightly overlap borders */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: transparent;
-  transition: background-color 0.3s ease;
-}
-
-.quadrant-base:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-}
-
-.quadrant-title {
-  font-size: 1.125rem;
-  font-weight: 300;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--text-color);
-}
-
-/* Expanded Quadrant */
-.expanded-quadrant {
-  position: fixed;
-  width: 24rem;
-  height: 24rem;
-  background-color: rgba(0, 0, 0, 0.9);
-  backdrop-filter: blur(10px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-}
-
-/* Positioning for expanded quadrants */
-.quadrant-position-top-left {
-  left: 50%;
-  top: 50%;
-  transform: translate(-100%, -100%);
-}
-
-.quadrant-position-top-right {
-  left: 50%;
-  top: 50%;
-  transform: translate(0, -100%);
-}
-
-.quadrant-position-bottom-left {
-  left: 50%;
-  top: 50%;
-  transform: translate(-100%, 0);
-}
-
-.quadrant-position-bottom-right {
-  left: 50%;
-  top: 50%;
-  transform: translate(0, 0);
-}
-
-/* Animation Container */
-.animation-container {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
-.animation-wrapper {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Media Queries */
-@media (max-width: 640px) {
-  .nav-grid {
-    width: 90vw;
-    height: 90vw;
+@layer base {
+  :root {
+    --background-color: #ffffff;
+    --text-color: #000000;
   }
 
-  .expanded-quadrant {
-    width: 90vw;
-    height: 90vw;
+  body {
+    @apply m-0 p-0 min-h-screen antialiased;
+    background-color: var(--background-color);
+    color: var(--text-color);
+  }
+}
+
+@layer components {
+  .art-deco-container {
+    @apply fixed inset-0 flex items-center justify-center bg-white;
+  }
+  .art-deco-grid {
+    @apply grid gap-0 relative;
+    grid-template-columns: repeat(6, 96px);
+  }
+  .art-deco-tile {
+    @apply w-24 h-24 flex items-center justify-center border border-gray-200
+    transition-all duration-300 cursor-pointer relative bg-transparent box-border z-[2];
+  }
+  .art-deco-tile-label {
+    @apply text-lg font-bold z-[2] text-gray-600 transition-opacity duration-300;
+  }
+  .art-deco-animation-overlay {
+    @apply absolute z-[1] pointer-events-none flex items-center justify-center;
+    width: 192px;
+    height: 192px;
+  }
+  .art-deco-animation-content {
+    @apply w-full h-full;
+  }
+  .art-deco-animation-content svg {
+    @apply w-full h-full;
+    transform-origin: center center;
+  }
+
+  .animation-container {
+    @apply absolute inset-0 flex items-center justify-center pointer-events-none;
+  }
+
+  .animation-container svg {
+    @apply w-full h-full;
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  /* Ensure SVG animations scale properly */
+  .animation-container svg * {
+    vector-effect: non-scaling-stroke;
+  }
+
+  /* Grid Layout */
+  .grid-container {
+    @apply fixed inset-0 flex items-center justify-center bg-white;
+  }
+
+  .grid-game {
+    @apply grid grid-cols-6 gap-0;
+  }
+
+  /* Tile Base Styles */
+  .grid-tile {
+    @apply relative w-24 h-24 flex items-center justify-center border border-gray-200
+    transition-all duration-300 cursor-pointer overflow-hidden;
+  }
+
+  /* Tile Text */
+  .tile-label {
+    @apply text-lg font-bold z-10 relative;
+  }
+
+  /* Animation Transitions */
+  .animation-enter {
+    @apply opacity-0;
+  }
+
+  .animation-enter-active {
+    @apply opacity-100 transition-opacity duration-300;
+  }
+
+  .animation-exit {
+    @apply opacity-100;
+  }
+
+  .animation-exit-active {
+    @apply opacity-0 transition-opacity duration-300;
+  }
+
+  /* Background Colors with Opacity for Animation Visibility */
+  .bg-red-500 {
+    @apply bg-opacity-90;
+  }
+
+  .bg-green-500 {
+    @apply bg-opacity-90;
+  }
+
+  .bg-blue-500 {
+    @apply bg-opacity-90;
+  }
+
+  .bg-yellow-400 {
+    @apply bg-opacity-90;
+  }
+
+  /* Hover States */
+  .grid-tile.expanded {
+    @apply z-20;
+  }
+
+  .grid-tile.target {
+    @apply transform scale-95;
+  }
+}
+
+@layer utilities {
+  /* Animation Utility Classes */
+  .animate-spin-slow {
+    animation: spin 3s linear infinite;
+  }
+
+  .animate-pulse-slow {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: .8;
+    }
   }
 }
