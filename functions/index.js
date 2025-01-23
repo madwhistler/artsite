@@ -29,7 +29,7 @@ async function fetchSheetData() {
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: SPREADSHEET_ID,
             range: `${SHEET_NAME}!A2:J`,
-            key: process.env.GOOGLE_API_KEY || 'AIzaSyDt7UiN7wR1T__ZpqNFONTAc_u-OlnNYZw'
+            key: process.env.GOOGLE_API_KEY
         });
 
         if (!response.data.values) {
@@ -42,7 +42,7 @@ async function fetchSheetData() {
             const imageFiles = await drive.files.list({
                 q: `'${SPREADSHEET_ID}' in parents and mimeType contains 'image/'`,
                 fields: 'files(id, name, webContentLink)',
-                key: process.env.GOOGLE_API_KEY || 'AIzaSyDt7UiN7wR1T__ZpqNFONTAc_u-OlnNYZw'
+                key: process.env.GOOGLE_API_KEY
             });
 
             console.log('Drive API response:', JSON.stringify(imageFiles.data, null, 2));
