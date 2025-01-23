@@ -24,7 +24,6 @@ export const AnimationContent = ({ type, content, key }) => {
                     key={key}
                     style={contentStyle}
                     src={content}
-                    loop
                     autoplay
                 />
             );
@@ -34,7 +33,6 @@ export const AnimationContent = ({ type, content, key }) => {
                     key={key}
                     style={contentStyle}
                     autoPlay
-                    loop
                     muted
                     playsInline
                 >
