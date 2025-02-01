@@ -3,65 +3,89 @@ import { initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 import { google } from "googleapis";
+import * as path from 'path';
+import { fileURLToPath } from 'url';
 
 initializeApp();
 
 const db = getFirestore();
 const storage = getStorage();
 
-// Configuration constants
 const COLLECTION_NAME = "artwork";
 const SPREADSHEET_ID = "1M70uwu-jimO_ncWuPi7M0vtSeCaKeKr4RrB8OFbRsZU";
 const SHEET_NAME = "Sheet2";
-const IMAGES_BUCKET = "haven-art-site";
-const DEV_API_KEY = 'local-dev-key';
+const API_KEYS = new Set([process.env.SYNC_API_KEY, 'local-dev-key']);
 
-/**
- * Fetches data from Google Sheets and associated Drive images
- * @returns {Promise<Array>} Array of row data with image information
- */
+function validateApiKey(authHeader) {
+    if (!authHeader?.startsWith('Bearer ')) return false;
+    const apiKey = authHeader.split('Bearer ')[1];
+    return API_KEYS.has(apiKey);
+}
+
+async function getAuthClient() {
+    const isEmulator = process.env.FUNCTIONS_EMULATOR === 'true';
+
+    if (isEmulator) {
+        try {
+            // In local environment, use service account credentials
+            const __dirname = path.dirname(fileURLToPath(import.meta.url));
+            const keyPath = path.join(__dirname, 'config', 'credentials.json');
+
+            return new google.auth.GoogleAuth({
+                keyFile: keyPath,
+                scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly']
+            }).getClient();
+        } catch (error) {
+            console.error('Error loading local credentials:', error);
+            throw new Error('Failed to initialize local auth client');
+        }
+    } else {
+        // In deployed environment, use default credentials
+        return new google.auth.GoogleAuth({
+            scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly']
+        }).getClient();
+    }
+}
+
 async function fetchSheetData() {
     const sheets = google.sheets('v4');
-    const drive = google.drive('v3');
-
     try {
-        // Get the sheet data
-        const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: SPREADSHEET_ID,
-            range: `${SHEET_NAME}!A2:J`,
-            key: process.env.GOOGLE_API_KEY
-        });
+        const authClient = await getAuthClient();
 
-        if (!response.data.values) {
+        const [valuesResponse, formattingResponse] = await Promise.all([
+            sheets.spreadsheets.values.get({
+                auth: authClient,
+                spreadsheetId: SPREADSHEET_ID,
+                range: `${SHEET_NAME}!A2:K`
+            }),
+            sheets.spreadsheets.get({
+                auth: authClient,
+                spreadsheetId: SPREADSHEET_ID,
+                ranges: [`${SHEET_NAME}!A2:K`],
+                fields: 'sheets.data.rowData.values.hyperlink,sheets.data.rowData.values.formattedValue'
+            })
+        ]);
+
+        if (!valuesResponse.data.values) {
             console.log('No data found in spreadsheet');
             return [];
         }
 
-        // Attempt to get associated image files
-        try {
-            const imageFiles = await drive.files.list({
-                q: `'${SPREADSHEET_ID}' in parents and mimeType contains 'image/'`,
-                fields: 'files(id, name, webContentLink)',
-                key: process.env.GOOGLE_API_KEY
+        const values = valuesResponse.data.values;
+        const formatting = formattingResponse.data.sheets[0].data[0].rowData || [];
+
+        const enrichedRows = values.map((row, rowIndex) => {
+            const formattingRow = formatting[rowIndex]?.values || [];
+            return row.map((value, colIndex) => {
+                const cellFormatting = formattingRow[colIndex] || {};
+                return {
+                    value: value || '',
+                    hyperlink: cellFormatting.hyperlink || ''
+                };
             });
-
-            console.log('Drive API response:', JSON.stringify(imageFiles.data, null, 2));
-        } catch (driveError) {
-            console.error('Error fetching Drive images:', driveError);
-        }
-
-        // Filter and normalize the rows
-        const rows = response.data.values.filter(row => row.some(cell => cell?.trim()));
-        console.log(`Found ${rows.length} non-empty rows of data`);
-
-        return rows.map(row => {
-            const paddedRow = [...row];
-            while (paddedRow.length < 10) {
-                paddedRow.push('');
-            }
-            return paddedRow;
         });
 
+        return enrichedRows.filter(row => row.some(cell => cell.value?.trim()));
     } catch (error) {
         console.error('Error fetching sheet data:', error.message);
         if (error.response) {
@@ -71,10 +95,9 @@ async function fetchSheetData() {
     }
 }
 
-/**
- * Converts raw sheet data to Firestore document format
- */
 function formatDocument(rowData) {
+    console.log('Formatting document from row data:', JSON.stringify(rowData));
+
     const [
         originalId,
         itemName,
@@ -86,11 +109,18 @@ function formatDocument(rowData) {
         width,
         date,
         imageData
-    ] = rowData.map(cell => cell?.trim() || '');
+    ] = rowData.map(cell => cell.value?.trim() || '');
+
+    const imageUrl = rowData[10]?.hyperlink || rowData[10]?.value || '';
+    console.log('Image cell data:', {
+        value: imageData,
+        hyperlink: imageUrl,
+        rawCell: rowData[9]
+    });
 
     const normalizedId = originalId.toLowerCase().replace(/\s+/g, '-');
 
-    return {
+    const document = {
         originalId,
         normalizedId,
         itemName: itemName || '',
@@ -103,22 +133,16 @@ function formatDocument(rowData) {
             width: parseInt(width) || 0
         },
         date: date || '',
-        imageData: imageData || '',
+        imageUrl,
+        imageTitle: imageData || '',
         updatedAt: new Date().toISOString(),
         createdAt: new Date().toISOString()
     };
+
+    console.log('Formatted document:', JSON.stringify(document));
+    return document;
 }
 
-function isAuthorized(authHeader) {
-    if (!authHeader) return false;
-    const token = authHeader.split('Bearer ')[1];
-    if (!token) return false;
-    return process.env.FUNCTIONS_EMULATOR === 'true' ? token === DEV_API_KEY : false;
-}
-
-/**
- * Main sync function exposed as HTTP endpoint
- */
 export const syncArtworkFromSheets = onRequest({
     timeoutSeconds: 540,
     memory: '2GiB'
@@ -129,13 +153,10 @@ export const syncArtworkFromSheets = onRequest({
             return;
         }
 
-        const authHeader = req.headers.authorization;
-        if (!isAuthorized(authHeader)) {
+        if (!validateApiKey(req.headers.authorization)) {
             res.status(401).json({
                 error: 'Unauthorized',
-                message: process.env.FUNCTIONS_EMULATOR === 'true'
-                    ? 'Use Bearer local-dev-key for local testing'
-                    : 'Invalid authorization token'
+                message: 'Invalid API key'
             });
             return;
         }
@@ -160,18 +181,21 @@ export const syncArtworkFromSheets = onRequest({
             newIds: {}
         };
 
-        for (const row of rows) {
+        for (const [index, row] of rows.entries()) {
             try {
-                const [originalId] = row;
-                if (!originalId?.trim()) {
-                    results.errors.push(`Skipped row: Missing Item ID`);
+                console.log(`\nProcessing row ${index + 1}/${rows.length}`);
+                const originalId = row[0].value?.trim();
+                if (!originalId) {
+                    results.errors.push(`Skipped row ${index + 1}: Missing Item ID`);
                     continue;
                 }
 
                 const docData = formatDocument(row);
-                console.log(`Processing document: ${docData.originalId}`);
+                console.log(`Processed document ${docData.originalId}:`, {
+                    imageUrl: docData.imageUrl,
+                    imageTitle: docData.imageTitle
+                });
 
-                // Create a new document with auto-generated ID
                 const docRef = db.collection(COLLECTION_NAME).doc();
                 results.newIds[docData.originalId] = docRef.id;
 
@@ -179,8 +203,8 @@ export const syncArtworkFromSheets = onRequest({
                 results.processed++;
 
             } catch (error) {
-                console.error('Error processing row:', error);
-                results.errors.push(`Error processing row: ${error.message}`);
+                console.error(`Error processing row ${index + 1}:`, error);
+                results.errors.push(`Error processing row ${index + 1}: ${error.message}`);
             }
         }
 

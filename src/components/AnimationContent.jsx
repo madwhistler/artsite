@@ -2,7 +2,7 @@ import React from 'react';
 import { Player as LottiePlayer } from '@lottiefiles/react-lottie-player';
 import { styles } from './styles.js';
 
-export const AnimationContent = ({ type, content, key }) => {
+export const AnimationContent = ({ type, content, animationType, loop = true, onEnded }) => {
     if (!content) return null;
 
     const contentStyle = {
@@ -13,7 +13,6 @@ export const AnimationContent = ({ type, content, key }) => {
         case 'svg':
             return (
                 <div
-                    key={key}
                     style={contentStyle}
                     dangerouslySetInnerHTML={{ __html: content }}
                 />
@@ -21,20 +20,22 @@ export const AnimationContent = ({ type, content, key }) => {
         case 'lottie':
             return (
                 <LottiePlayer
-                    key={key}
                     style={contentStyle}
                     src={content}
+                    loop={loop}
                     autoplay
+                    onComplete={!loop ? onEnded : undefined}
                 />
             );
         case 'video':
             return (
                 <video
-                    key={key}
                     style={contentStyle}
                     autoPlay
+                    loop={loop}
                     muted
                     playsInline
+                    onEnded={!loop ? onEnded : undefined}
                 >
                     <source src={content} type="video/mp4" />
                 </video>

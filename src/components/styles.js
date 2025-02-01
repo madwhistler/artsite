@@ -1,8 +1,10 @@
 import { TILE_SIZE, TILE_OVERLAP, GRID_SIZE } from '../config.js';
 
 const calcSize = (multiplier = 1) => `${(TILE_SIZE * multiplier)}px`;
+const calcPosition = (units) => `${(TILE_SIZE * units)}px`;
 
 export const styles = {
+    // Container and Grid Styles
     container: {
         position: 'fixed',
         inset: 0,
@@ -17,6 +19,8 @@ export const styles = {
         gap: 0,
         position: 'relative',
     },
+
+    // Tile Styles
     tile: {
         width: `${TILE_SIZE + TILE_OVERLAP}px`,
         height: `${TILE_SIZE + TILE_OVERLAP}px`,
@@ -24,12 +28,11 @@ export const styles = {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        transition: 'all 300ms ease-in-out',
+        transition: 'all 300ms',
         position: 'relative',
         backgroundColor: 'transparent',
         boxSizing: 'border-box',
         zIndex: 2,
-        willChange: 'transform, opacity',
     },
     tileLabel: {
         display: 'none',
@@ -38,7 +41,6 @@ export const styles = {
         fontSize: '0.875rem',
         letterSpacing: '0.1em',
         textTransform: 'uppercase',
-        pointerEvents: 'none',
     },
     visibleLabel: {
         display: 'block',
@@ -48,42 +50,80 @@ export const styles = {
     },
     inactiveTile: {
         cursor: 'default',
-        opacity: 0.5,
     },
+
+    // Animation Overlay Styles
     animationOverlay: {
         position: 'absolute',
-        width: calcSize(2),
-        height: calcSize(2),
-        zIndex: 1,
         pointerEvents: 'none',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        overflow: 'hidden',
     },
-    animationContent: {
-        width: '100%',
-        height: '100%',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    page: {
-        position: 'fixed',
-        inset: 0,
+    tileAnimation: {
+        position: 'absolute',
+        zIndex: 2,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: 'black',
-        color: '#E5E5E5',
-        zIndex: 50,
+    },
+    expansionAnimation: {
+        width: calcSize(2),
+        height: calcSize(2),
+        zIndex: 3,
+    },
+    contractionAnimation: {
+        width: calcSize(2),
+        height: calcSize(2),
+        zIndex: 3,
+    },
+    backgroundAnimation: {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        zIndex: 1,
+        overflow: 'hidden',
+    },
+
+    // Animation Content Styles
+    animationContent: {
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        objectFit: 'cover',
+    },
+    backgroundContent: {
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
+        objectPosition: 'center',
+    },
+
+    // Page Styles
+    page: {
+        width: '100%',
+        height: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#000000',
+        color: '#FFFFFF',
     },
     pageTitle: {
         fontFamily: "'Poiret One', sans-serif",
-        fontSize: '4rem',
+        fontSize: '2.5rem',
         letterSpacing: '0.2em',
         textTransform: 'uppercase',
+        marginBottom: '2rem',
     },
 
-    // Navigation page variants (home)
+    // Navigation Page Variants
     navPageVariants: {
         initial: (isBack) => ({
             x: isBack ? '-100%' : '100%',
@@ -109,7 +149,7 @@ export const styles = {
         })
     },
 
-    // Content page variants
+    // Content Page Variants
     contentPageVariants: {
         initial: (isBack) => ({
             x: isBack ? '-100%' : '100%',
