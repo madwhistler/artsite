@@ -101,12 +101,6 @@ async function fetchSheetData() {
 function formatDocument(rowData) {
     console.log('Formatting document from row data:', JSON.stringify(rowData));
 
-    // Debug: Log the length of rowData and each item with its index
-    console.log('Row data length:', rowData.length);
-    rowData.forEach((item, index) => {
-        console.log(`Item at index ${index}:`, item);
-    });
-
     // Extract the first 10 fields as before
     const [
         originalId,
@@ -123,27 +117,24 @@ function formatDocument(rowData) {
 
     // Extract image URL from the 11th column (index 10)
     const imageUrl = rowData[10]?.hyperlink || rowData[10]?.value || '';
-
-    // Debug: Log the raw tags data
-    console.log('Raw tags data (index 11):', rowData[11]);
-
+    
     // Extract tags from the 12th column (index 11) if it exists
     const tagsString = rowData[11]?.value || '';
-
+    
     console.log('Image cell data:', {
         value: imageData,
         hyperlink: imageUrl,
         rawCell: rowData[9]
     });
-
-    console.log('Tags string:', tagsString);
+    
+    console.log('Tags data:', {
+        value: tagsString
+    });
 
     // Process tags if they exist - split by comma and trim each tag
-    const tagArray = tagsString
-        ? tagsString.split(',').map(tag => tag.trim()).filter(tag => tag)
+    const tagArray = tagsString 
+        ? tagsString.split(',').map(tag => tag.trim()).filter(tag => tag) 
         : [];
-
-    console.log('Processed tag array:', tagArray);
 
     const normalizedId = originalId.toLowerCase().replace(/\s+/g, '-');
 

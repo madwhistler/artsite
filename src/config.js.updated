@@ -1,0 +1,131 @@
+// Import page components directly
+import { Gallery } from './pages/Gallery';
+
+// Grid Configuration
+export const TILE_SIZE = 96;
+export const TILE_OVERLAP = 6;
+export const GRID_SIZE = 6;
+
+// Core tiles that are initially active
+export const CORE_TILES = ['r1', 'g1', 'b1', 'y1'];
+
+// Page Definitions - indexed by tile ID
+export const PAGES = {
+    'r1': {
+        title: 'Beauty',
+        path: '/beauty',
+        component: Gallery,
+        props: {
+            title: 'Beauty',
+            galleryFilter: ['lavanic', 'bear'] // Updated to use tag array
+        }
+    },
+    'g1': {
+        title: 'Clarity',
+        path: '/clarity',
+        component: Gallery,
+        props: {
+            title: 'Clarity',
+            galleryFilter: ['scroll', 'ink'] // Updated to use tag array
+        }
+    },
+    'b1': {
+        title: 'Irony',
+        path: '/irony',
+        component: Gallery,
+        props: {
+            title: 'Irony',
+            galleryFilter: ['abstract', 'red'] // Updated to use tag array
+        }
+    },
+    'y1': {
+        title: 'Ignorance',
+        path: '/ignorance',
+        component: Gallery,
+        props: {
+            title: 'Ignorance',
+            galleryFilter: ['landscape', 'intuative'] // Updated to use tag array
+        }
+    },
+    'r2': {
+        title: 'R2',
+        path: '/r2',
+        component: Gallery,
+        props: {
+            title: 'r2',
+            galleryFilter: ['SCHOOL'] // Kept as single item array for backward compatibility
+        }
+    },
+    'r3': {
+        title: 'R3',
+        path: '/r3',
+        component: Gallery,
+        props: {
+            title: 'r3',
+            galleryFilter: ['SCHOOL'] // Kept as single item array for backward compatibility
+        }
+    },
+    'r4': {
+        title: 'R4',
+        path: '/r4',
+        component: Gallery,
+        props: {
+            title: 'r4',
+            galleryFilter: ['SCHOOL'] // Kept as single item array for backward compatibility
+        }
+    },
+    'r5': {
+        title: 'R5',
+        path: '/r5',
+        component: Gallery,
+        props: {
+            title: 'r5',
+            galleryFilter: ['SCHOOL'] // Kept as single item array for backward compatibility
+        }
+    },
+    'r6': {
+        title: 'R6',
+        path: '/r6',
+        component: Gallery,
+        props: {
+            title: 'r6',
+            galleryFilter: ['SCHOOL'] // Kept as single item array for backward compatibility
+        }
+    },
+    'r7': {
+        title: 'R7',
+        path: '/r7',
+        component: Gallery,
+        props: {
+            title: 'r7',
+            galleryFilter: ['SCHOOL'] // Kept as single item array for backward compatibility
+        }
+    },
+    'r8': {
+        title: 'R8',
+        path: '/r8',
+        component: Gallery,
+        props: {
+            title: 'r8',
+            galleryFilter: ['SCHOOL'] // Kept as single item array for backward compatibility
+        }
+    },
+    'r9': {
+        title: 'R9',
+        path: '/r9',
+        component: Gallery,
+        props: {
+            title: 'r9',
+            galleryFilter: ['SCHOOL'] // Kept as single item array for backward compatibility
+        }
+    },
+    'y2': {
+        title: 'Favorites',
+        path: '/favorites',
+        component: Gallery,
+        props: {
+            title: 'Favorites',
+            galleryFilter: 'SELECTED' // Keep this special case as is
+        }
+    }
+};

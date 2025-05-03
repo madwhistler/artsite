@@ -4,7 +4,12 @@ import { ArtDecoNav } from './components/ArtDecoNav';
 import { AuthControls } from './components/AuthControls';
 import { PageTransition } from './components/PageTransition';
 import { NavigationProvider } from './components/NavigationContext';
+import { LabelVisibilityProvider } from './components/LabelVisibilityContext';
+import { FavoritesProvider } from './components/FavoritesContext';
+import { LabelToggle } from './components/LabelToggle';
+import {AuthProvider} from "@/components/AuthContext.jsx";
 import { PAGES } from './config';
+
 
 function AppRoutes() {
     const location = useLocation();
@@ -37,9 +42,16 @@ function AppRoutes() {
 function App() {
     return (
         <Router>
-            <NavigationProvider>
-                <AppRoutes />
-            </NavigationProvider>
+            <AuthProvider>
+                <NavigationProvider>
+                    <LabelVisibilityProvider>
+                        <FavoritesProvider>
+                            <LabelToggle />
+                            <AppRoutes />
+                        </FavoritesProvider>
+                    </LabelVisibilityProvider>
+                </NavigationProvider>
+            </AuthProvider>
         </Router>
     );
 }

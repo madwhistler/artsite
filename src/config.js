@@ -1,8 +1,9 @@
-// Import page components directly
+﻿// config.js
 import { Gallery } from './pages/Gallery';
+import { Editable } from './pages/Editable';
 
 // Grid Configuration
-export const TILE_SIZE = 146;
+export const TILE_SIZE = 96;
 export const TILE_OVERLAP = 6;
 export const GRID_SIZE = 6;
 
@@ -17,7 +18,7 @@ export const PAGES = {
         component: Gallery,
         props: {
             title: 'Beauty',
-            galleryFilter: 'STUDY'
+            galleryFilter: ['lavanic', 'bear'] // Updated to use tag array
         }
     },
     'g1': {
@@ -26,7 +27,7 @@ export const PAGES = {
         component: Gallery,
         props: {
             title: 'Clarity',
-            galleryFilter: 'SCROLL'
+            galleryFilter: ['scroll', 'ink'] // Updated to use tag array
         }
     },
     'b1': {
@@ -35,19 +36,102 @@ export const PAGES = {
         component: Gallery,
         props: {
             title: 'Irony',
-            galleryFilter: 'DEVO'
+            galleryFilter: ['abstract', 'red']
         }
     },
     'y1': {
-        title: 'Ignorance',
-        path: '/ignorance',
+        title: 'You&Me',
+        path: '/youme',
+        component: Editable,
+        props: {
+            title: 'You&Me',
+            image: 'public/Haven.jpeg',
+            textFile: 'public/ArtistBio.html'
+        }
+    },
+    'r2': {
+        title: 'Light',
+        path: '/r2',
         component: Gallery,
         props: {
-            title: 'Ignorance',
-            galleryFilter: 'PRINT'
+            title: 'Light/Intuitive',
+            galleryFilter: ['intuative','light']
+        }
+    },
+    'r3': {
+        title: 'Atlanta',
+        path: '/r3',
+        component: Gallery,
+        props: {
+            title: 'Atlanta',
+            galleryFilter: ['atlanta']
+        }
+    },
+    'r4': {
+        title: 'Stomach',
+        path: '/r4',
+        component: Gallery,
+        props: {
+            title: 'Cat Series',
+            galleryFilter: ['cat']
+        }
+    },
+    'r5': {
+        title: 'Weaving',
+        path: '/weaving',
+        component: Gallery,
+        props: {
+            title: 'r5',
+            galleryFilter: ['weaving','fabric']
+        }
+    },
+    'r6': {
+        title: 'Leaves',
+        path: '/leaves',
+        component: Gallery,
+        props: {
+            title: 'Leaves/Trees',
+            galleryFilter: ['leaves','tree','forest']
+        }
+    },
+    'r7': {
+        title: 'Devotional',
+        path: '/devotional',
+        component: Gallery,
+        props: {
+            title: 'Devotional',
+            galleryFilter: ['devotional']
+        }
+    },
+    'r8': {
+        title: 'Protein',
+        path: '/protein',
+        component: Gallery,
+        props: {
+            title: 'Protein',
+            galleryFilter: ['protein']
+        }
+    },
+    'r9': {
+        title: 'R9',
+        path: '/r9',
+        component: Gallery,
+        props: {
+            title: 'r9',
+            galleryFilter: ['SCHOOL'] // Kept as single item array for backward compatibility
+        }
+    },
+    'y2': {
+        title: 'Favorites',
+        path: '/favorites',
+        component: Gallery,
+        props: {
+            title: 'Favorites',
+            galleryFilter: 'SELECTED' // Keep this special case as is
         }
     }
 };
+
 
 // Animation Types
 export const ANIMATION_TYPES = {
@@ -172,16 +256,42 @@ export const GRID_LAYOUT = [
     ['y7', 'y6', 'y5', 'b9', 'b8', 'b7']
 ];
 
-// Tile Labels - Now derived from PAGES where possible
 export const TILE_LABELS = {
-    'r1': '',
-    'g1': '',
-    'b1': '',
-    'y1': '',
-    'r2': "Overlap!",
-    'r3': "Textiles",
-    'r4': "Printmaking",
-    'r5': "Overlap!",
-    'y4': "Overlap!",
-    'y9': "Overlap!"
+    'r1': PAGES['r1'] ? PAGES['r1'].title : 'r1',
+    'g1': PAGES['g1'] ? PAGES['g1'].title : 'g1',
+    'b1': PAGES['b1'] ? PAGES['b1'].title : 'b1',
+    'y1': PAGES['y1'] ? PAGES['y1'].title : 'y1',
+    'r2': PAGES['r2'] ? PAGES['r2'].title : "r2",
+    'r3': PAGES['r3'] ? PAGES['r3'].title : "r3",
+    'r4': PAGES['r4'] ? PAGES['r4'].title : "r4",
+    'r5': PAGES['r5'] ? PAGES['r5'].title : "r5",
+    'r6': PAGES['r6'] ? PAGES['r6'].title : "r6",
+    'r7': PAGES['r7'] ? PAGES['r7'].title : "r7",
+    'r8': PAGES['r8'] ? PAGES['r8'].title : "r8",
+    'r9': PAGES['r9'] ? PAGES['r9'].title : "r9",
+    'g2': PAGES['g2'] ? PAGES['g2'].title : "g2",
+    'g3': PAGES['g3'] ? PAGES['g3'].title : "g3",
+    'g4': PAGES['g4'] ? PAGES['g4'].title : "g4",
+    'g5': PAGES['g5'] ? PAGES['g5'].title : "g5",
+    'g6': PAGES['g6'] ? PAGES['g6'].title : "g6",
+    'g7': PAGES['g7'] ? PAGES['g7'].title : "g7",
+    'g8': PAGES['g8'] ? PAGES['g8'].title : "g8",
+    'g9': PAGES['g9'] ? PAGES['g9'].title : "g9",
+    'b2': PAGES['b2'] ? PAGES['b2'].title : "b2",
+    'b3': PAGES['b3'] ? PAGES['b3'].title : "b3",
+    'b4': PAGES['b4'] ? PAGES['b4'].title : "b4",
+    'b5': PAGES['b5'] ? PAGES['b5'].title : "b5",
+    'b6': PAGES['b6'] ? PAGES['b6'].title : "b6",
+    'b7': PAGES['b7'] ? PAGES['b7'].title : "b7",
+    'b8': PAGES['b8'] ? PAGES['b8'].title : "b8",
+    'b9': PAGES['b9'] ? PAGES['b9'].title : "b9",
+    'y2': PAGES['y2'] ? PAGES['y2'].title : "y2",
+    'y3': PAGES['y3'] ? PAGES['y3'].title : "y3",
+    'y4': PAGES['y4'] ? PAGES['y4'].title : "y4",
+    'y5': PAGES['y5'] ? PAGES['y5'].title : "y5",
+    'y6': PAGES['y6'] ? PAGES['y6'].title : "y6",
+    'y7': PAGES['y7'] ? PAGES['y7'].title : "y7",
+    'y8': PAGES['y8'] ? PAGES['y8'].title : "y8",
+    'y9': PAGES['y9'] ? PAGES['y9'].title : "y9"
 };
+

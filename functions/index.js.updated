@@ -59,12 +59,12 @@ async function fetchSheetData() {
             sheets.spreadsheets.values.get({
                 auth: authClient,
                 spreadsheetId: SPREADSHEET_ID,
-                range: `${SHEET_NAME}!A2:L` // Include column L for tags
+                range: `${SHEET_NAME}!A2:L` // Updated to include column L for tags
             }),
             sheets.spreadsheets.get({
                 auth: authClient,
                 spreadsheetId: SPREADSHEET_ID,
-                ranges: [`${SHEET_NAME}!A2:L`], // Include column L for tags
+                ranges: [`${SHEET_NAME}!A2:L`], // Updated to include column L for tags
                 fields: 'sheets.data.rowData.values.hyperlink,sheets.data.rowData.values.formattedValue'
             })
         ]);
@@ -101,13 +101,6 @@ async function fetchSheetData() {
 function formatDocument(rowData) {
     console.log('Formatting document from row data:', JSON.stringify(rowData));
 
-    // Debug: Log the length of rowData and each item with its index
-    console.log('Row data length:', rowData.length);
-    rowData.forEach((item, index) => {
-        console.log(`Item at index ${index}:`, item);
-    });
-
-    // Extract the first 10 fields as before
     const [
         originalId,
         itemName,
@@ -118,33 +111,21 @@ function formatDocument(rowData) {
         height,
         width,
         date,
-        imageData
-    ] = rowData.slice(0, 10).map(cell => cell.value?.trim() || '');
+        imageData,
+        // No need to destructure the image URL as it's handled separately
+        tags // New field for tags
+    ] = rowData.map(cell => cell.value?.trim() || '');
 
-    // Extract image URL from the 11th column (index 10)
     const imageUrl = rowData[10]?.hyperlink || rowData[10]?.value || '';
-
-    // Debug: Log the raw tags data
-    console.log('Raw tags data (index 11):', rowData[11]);
-
-    // Extract tags from the 12th column (index 11) if it exists
-    const tagsString = rowData[11]?.value || '';
-
     console.log('Image cell data:', {
         value: imageData,
         hyperlink: imageUrl,
         rawCell: rowData[9]
     });
 
-    console.log('Tags string:', tagsString);
-
-    // Process tags if they exist - split by comma and trim each tag
-    const tagArray = tagsString
-        ? tagsString.split(',').map(tag => tag.trim()).filter(tag => tag)
-        : [];
-
-    console.log('Processed tag array:', tagArray);
-
+    // Process tags if they exist
+    const tagArray = tags ? tags.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
+    
     const normalizedId = originalId.toLowerCase().replace(/\s+/g, '-');
 
     const document = {
@@ -162,7 +143,7 @@ function formatDocument(rowData) {
         date: date || '',
         imageUrl,
         imageTitle: imageData || '',
-        tags: tagArray, // Add the processed tags array
+        tags: tagArray, // Add the tags array to the document
         updatedAt: new Date().toISOString(),
         createdAt: new Date().toISOString()
     };

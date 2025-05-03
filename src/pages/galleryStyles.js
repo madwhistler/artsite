@@ -33,15 +33,13 @@ export const galleryStyles = {
         overflow: 'hidden',
         transition: 'transform 0.2s ease-in-out',
         cursor: 'pointer',
-        '&:hover': {
-            transform: 'scale(1.02)'
-        }
     },
     imageContainer: {
         width: '100%',
         height: '300px',
         position: 'relative',
-        backgroundColor: '#2a2a2a'
+        backgroundColor: '#2a2a2a',
+        overflow: 'hidden'
     },
     iframe: {
         width: '100%',
@@ -51,9 +49,48 @@ export const galleryStyles = {
         top: 0,
         left: 0
     },
+    image: {
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
+        objectPosition: 'center',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        backgroundColor: '#2a2a2a',
+        transition: 'transform 0.3s ease'
+    },
+    imageOverlay: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        opacity: 0,
+        transition: 'opacity 0.3s ease',
+        animation: 'fadeIn 0.3s forwards'
+    },
+    zoomIcon: {
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        borderRadius: '50%',
+        width: '48px',
+        height: '48px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
     info: {
         padding: '1rem',
         color: '#ffffff'
+    },
+    infoContent: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start'
     },
     title: {
         fontSize: '1.1rem',
@@ -63,11 +100,27 @@ export const galleryStyles = {
         fontSize: '0.9rem',
         color: '#cccccc'
     },
+    favoriteButton: {
+        cursor: 'pointer',
+        padding: '0.25rem',
+        borderRadius: '50%',
+        transition: 'transform 0.2s ease-in-out',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
     loadingMessage: {
-        textAlign: 'center'
+        textAlign: 'center',
+        padding: '2rem'
     },
     errorMessage: {
         textAlign: 'center',
-        color: '#ff0000'
+        color: '#ff0000',
+        padding: '2rem'
+    },
+    emptyMessage: {
+        textAlign: 'center',
+        color: '#cccccc',
+        padding: '2rem'
     }
 };

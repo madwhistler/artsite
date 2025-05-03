@@ -1,11 +1,16 @@
-import { GRID_LAYOUT, TILE_LABELS, EXPANSION_SETS, INITIAL_ACTIVE_TILES } from '../config.js';
+import {
+    GRID_LAYOUT,
+    TILE_LABELS,
+    EXPANSION_SETS,
+    INITIAL_ACTIVE_TILES
+} from '../config';
 
 export const getAnimationType = (filename) => {
     if (!filename) return null;
     const extension = filename.split('.').pop().toLowerCase();
     switch (extension) {
         case 'svg': return 'svg';
-        case 'json': return 'lottie';
+        case 'lottie': return 'lottie';
         case 'mp4': return 'video';
         default: return null;
     }
@@ -55,10 +60,32 @@ export const getExpansionOrigin = (sourceId) => {
     return topLeftPosition || [0, 0];
 };
 
+export const getTilePosition = (tileId) => {
+    return findTileInGrid(tileId) || [0, 0];
+};
+
+export const getQuadrant = (tileId) => {
+    if (typeof tileId !== 'string') return '';
+    return tileId.charAt(0);
+};
+
+export const getQuadrantExpansions = (sourceId) => {
+    const quadrant = getQuadrant(sourceId);
+    const expansions = new Set();
+
+    Object.entries(EXPANSION_SETS).forEach(([id, targets]) => {
+        if (getQuadrant(id) === quadrant) {
+            expansions.add(id);
+            targets.forEach(target => expansions.add(target));
+        }
+    });
+
+    return expansions;
+};
+
 export const calculateActiveTiles = (hoveredTiles) => {
     const newActiveTiles = new Set(INITIAL_ACTIVE_TILES);
 
-    // Helper to find source tiles for a given target
     const findSourceTiles = (targetTile) => {
         return Object.entries(EXPANSION_SETS)
             .filter(([_, targets]) => targets.includes(targetTile))
@@ -66,16 +93,13 @@ export const calculateActiveTiles = (hoveredTiles) => {
     };
 
     hoveredTiles.forEach(tile => {
-        // If it's an expansion source, add its targets
         if (EXPANSION_SETS[tile]) {
             EXPANSION_SETS[tile].forEach(target => newActiveTiles.add(target));
         }
 
-        // Find and add any source tiles
         const sources = findSourceTiles(tile);
         sources.forEach(source => newActiveTiles.add(source));
 
-        // For each source, also add its other targets
         sources.forEach(source => {
             if (EXPANSION_SETS[source]) {
                 EXPANSION_SETS[source].forEach(target => newActiveTiles.add(target));
