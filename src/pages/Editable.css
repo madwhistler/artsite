@@ -213,11 +213,167 @@
     font-style: italic;
 }
 
-.editable-image-note {
+.editable-image-note, .image-debug-info {
     font-size: 12px;
     color: #ccc;
     margin-top: 5px;
     font-style: italic;
+}
+
+.image-debug-info {
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 4px;
+    border-radius: 4px;
+    word-break: break-all;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.login-message,
+.permission-message {
+    font-size: 14px;
+    color: #888;
+    margin-right: 10px;
+    font-style: italic;
+}
+
+/* Image Magnifier Styles */
+.image-magnifier-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.image-magnifier-content {
+    background-color: rgba(30, 30, 30, 0.9);
+    border-radius: 8px;
+    width: 90%;
+    max-width: 1200px;
+    height: 90%;
+    max-height: 800px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+}
+
+.image-magnifier-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.image-magnifier-header h3 {
+    margin: 0;
+    color: white;
+    font-size: 18px;
+}
+
+.image-magnifier-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.image-magnifier-button {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 4px;
+    color: white;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.image-magnifier-button:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.image-magnifier-container {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+.image-magnifier-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    transform-origin: center center;
+    transition: transform 0.1s ease-out;
+    user-select: none;
+}
+
+.image-magnifier-footer {
+    padding: 10px 20px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+}
+
+.image-magnifier-info {
+    display: flex;
+    gap: 20px;
+}
+
+.image-magnifier-hint {
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Magnify button for the image */
+.editable-image-magnify {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    opacity: 0.7;
+    z-index: 10;
+}
+
+.editable-image-magnify:hover {
+    background-color: rgba(0, 0, 0, 0.7);
+    opacity: 1;
+}
+
+.editable-image-wrapper {
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+    max-height: 30vh;
 }
 
 /* Responsive adjustments */
@@ -225,30 +381,34 @@
     .editable-page {
         padding: 2rem;
     }
-    
+
     .editable-content {
         flex-direction: row;
         align-items: stretch;
         gap: 2rem;
     }
-    
+
     .editable-image-container {
         flex: 1;
         max-width: 40%;
         max-height: none;
         margin-bottom: 0;
     }
-    
+
     .editable-image {
         max-height: 400px;
     }
-    
+
+    .editable-image-wrapper {
+        max-height: 400px;
+    }
+
     .editable-text-container {
         flex: 1.5;
         max-height: 70vh;
         min-height: 400px;
     }
-    
+
     .editable-textarea {
         min-height: 400px;
         max-height: 70vh;
@@ -260,26 +420,26 @@
     .editable-page {
         padding: 1rem;
     }
-    
+
     .editable-header {
         flex-direction: column;
         align-items: flex-start;
     }
-    
+
     .editable-header h1 {
         margin-bottom: 1rem;
     }
-    
+
     .editable-controls {
         width: 100%;
     }
-    
+
     /* Hide image on very small screens */
     @media (max-height: 600px) {
         .editable-image-container {
             display: none;
         }
-        
+
         .editable-text-container {
             min-height: 70vh;
         }

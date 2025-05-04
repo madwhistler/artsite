@@ -18,13 +18,6 @@ export const GridTile = ({
     const navigate = useNavigate();
     const { isMobile } = useDeviceDetection();
 
-    // Debug logging
-    useEffect(() => {
-        if (id === 'r1') { // Log only for one tile to avoid console spam
-            console.log('Device detection state:', { isMobile, id });
-        }
-    }, [id, isMobile]);
-
     const tileStyle = {
         ...styles.tile,
         ...(isActive ? styles.activeTile : styles.inactiveTile),
@@ -37,9 +30,6 @@ export const GridTile = ({
         if (!isActive) return;
 
         if (isMobile) {
-            // Debug log
-            console.log('Mobile interaction:', { id, isExpanded });
-
             // On mobile, handle tap behavior
             if (isExpanded && PAGES[id]) {
                 // If expanded and has a page, navigate
@@ -49,10 +39,7 @@ export const GridTile = ({
                 onTap(id);
             }
         } else {
-            // Debug log
-            console.log('Desktop interaction:', { id });
-
-            if (PAGES[id]) {
+             if (PAGES[id]) {
                 // On desktop, direct navigation on click
                 navigate(PAGES[id].path);
             }
@@ -61,9 +48,7 @@ export const GridTile = ({
 
     const handleHover = useCallback(() => {
         if (!isMobile) {
-            // Debug log
-            console.log('Hover event:', { id, isMobile });
-            onHover(id);
+         onHover(id);
         }
     }, [id, isMobile, onHover]);
 

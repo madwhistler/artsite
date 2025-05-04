@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState } from 'react';
 const LabelVisibilityContext = createContext();
 
 export const LabelVisibilityProvider = ({ children }) => {
-    const [labelsVisible, setLabelsVisible] = useState(false);
+    const [labelsVisible, setLabelsVisible] = useState(true);
 
     return (
         <LabelVisibilityContext.Provider value={{ labelsVisible, setLabelsVisible }}>

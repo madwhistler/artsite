@@ -1,13 +1,25 @@
-import { onRequest } from "firebase-functions/v2/https";
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 import { google } from "googleapis";
 import * as path from 'path';
 import { fileURLToPath } from 'url';
-import * as functions from 'firebase-functions';
 import * as fs from 'fs';
 import * as os from 'os';
+
+// Import firebase-functions using dynamic import
+let functionsV1;
+let onRequest;
+
+try {
+  const functionsModule = await import('firebase-functions');
+  functionsV1 = functionsModule.default || functionsModule;
+
+  const functionsV2Module = await import('firebase-functions/v2/https');
+  onRequest = functionsV2Module.onRequest;
+} catch (error) {
+  console.error('Error importing firebase-functions:', error);
+}
 
 initializeApp();
 
@@ -17,7 +29,7 @@ const storage = getStorage();
 const COLLECTION_NAME = "artwork";
 const SPREADSHEET_ID = "1M70uwu-jimO_ncWuPi7M0vtSeCaKeKr4RrB8OFbRsZU";
 const SHEET_NAME = "Sheet2";
-const API_KEYS = new Set([process.env.SYNC_API_KEY, 'local-dev-key']);
+const API_KEYS = new Set([process.env.SYNC_API_KEY, 'doom-puppies-poop-on-trump-with-artistic-intent']);
 
 function validateApiKey(authHeader) {
     if (!authHeader?.startsWith('Bearer ')) return false;
@@ -34,13 +46,14 @@ async function getAuthClient() {
             const __dirname = path.dirname(fileURLToPath(import.meta.url));
             const keyPath = path.join(__dirname, 'config', 'credentials.json');
 
+            // Always use the credentials file for authentication
             return new google.auth.GoogleAuth({
                 keyFile: keyPath,
                 scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly']
             }).getClient();
         } catch (error) {
             console.error('Error loading local credentials:', error);
-            throw new Error('Failed to initialize local auth client');
+            throw new Error('Failed to initialize local auth client: ' + error.message);
         }
     } else {
         // In deployed environment, use default credentials
@@ -51,6 +64,7 @@ async function getAuthClient() {
 }
 
 async function fetchSheetData() {
+    // Access the actual spreadsheet data
     const sheets = google.sheets('v4');
     try {
         const authClient = await getAuthClient();

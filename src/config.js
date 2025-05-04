@@ -1,6 +1,6 @@
-﻿// config.js
+﻿﻿﻿﻿﻿﻿﻿﻿// config.js
 import { Gallery } from './pages/Gallery';
-import { Editable } from './pages/Editable';
+import { Editable } from './pages/Editable.jsx';
 
 // Grid Configuration
 export const TILE_SIZE = 96;
@@ -18,7 +18,7 @@ export const PAGES = {
         component: Gallery,
         props: {
             title: 'Beauty',
-            galleryFilter: ['lavanic', 'bear'] // Updated to use tag array
+            galleryFilter: ['bear']
         }
     },
     'g1': {
@@ -31,22 +31,23 @@ export const PAGES = {
         }
     },
     'b1': {
-        title: 'Irony',
-        path: '/irony',
-        component: Gallery,
+        title: 'Lavanism',
+        path: '/lavanism',
+        component: Editable,
         props: {
-            title: 'Irony',
-            galleryFilter: ['abstract', 'red']
+            title: 'Lavanic Art & Language',
+            image: '/lavanic-scroll.jpg',
+            textFile: '/Lavanism.html'
         }
     },
     'y1': {
-        title: 'You&Me',
+        title: 'You + Me',
         path: '/youme',
-        component: Editable,
+        component: Editable, // Using our test component with the refactored Editable
         props: {
-            title: 'You&Me',
-            image: 'public/Haven.jpeg',
-            textFile: 'public/ArtistBio.html'
+            title: 'You + Me',
+            image: '/Haven.jpeg',
+            textFile: '/ArtistBio.html'
         }
     },
     'r2': {
@@ -68,8 +69,8 @@ export const PAGES = {
         }
     },
     'r4': {
-        title: 'Stomach',
-        path: '/r4',
+        title: 'Cat',
+        path: '/cat',
         component: Gallery,
         props: {
             title: 'Cat Series',
@@ -129,6 +130,35 @@ export const PAGES = {
             title: 'Favorites',
             galleryFilter: 'SELECTED' // Keep this special case as is
         }
+    },
+    'b2': {
+        title: 'Translation',
+        path: '/translation',
+        component: Editable,
+        props: {
+            title: 'Lavanic Translation',
+            image: '/lavanic-scroll.jpg',
+            textFile: '/Translation.html'
+        }
+    },
+    'b3': {
+        title: 'Collection',
+        path: '/collection',
+        component: Gallery,
+        props: {
+            title: 'Lavanic Artworks',
+            galleryFilter: ['lavanic']
+        }
+    },
+    'b4': {
+        title: 'Paradox',
+        path: '/paradox',
+        component: Editable,
+        props: {
+            title: 'Paradox Path',
+            image: '/paradoxpath.jpg',
+            textFile: '/ParadoxPath.html'
+        }
     }
 };
 
@@ -176,7 +206,7 @@ export const ANIMATIONS = {
         { type: ANIMATION_TYPES.BACKGROUND, src: '/Mihu_Frame_.mp4' }
     ],
     'g4': [
-        { type: ANIMATION_TYPES.EXPANSION, src: 'Blue_Down-right.mp4' },
+        { type: ANIMATION_TYPES.EXPANSION, src: '/Blue_Down-right.mp4' },
         { type: ANIMATION_TYPES.CONTRACTION, src: '/Blue_Down-right_Reverse.mp4' }
     ],
     'b1': [
@@ -200,7 +230,7 @@ export const ANIMATIONS = {
     'y1': [
         { type: ANIMATION_TYPES.TILE, src: '/Orange_Idle.mp4' },
         { type: ANIMATION_TYPES.EXPANSION, src: '/Orange_Down-left.mp4' },
-        { type: ANIMATION_TYPES.CONTRACTION, src: '/Orange_Bottom-left_Reverse.mp4' },
+        { type: ANIMATION_TYPES.CONTRACTION, src: '/Orange_Down-left_Reverse.mp4' },
     ],
     'y2': [
         { type: ANIMATION_TYPES.EXPANSION, src: '/Orange_Down-right.mp4' },

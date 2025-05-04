@@ -10,12 +10,52 @@ import { useFavorites } from '../components/FavoritesContext';
 import { Heart, ZoomIn } from 'lucide-react';
 import ImageDetailModal from '../components/ImageDetailModal';
 
+// Function to generate tags from artwork data if tags are missing
+const generateTagsFromArtwork = (artwork) => {
+    const generatedTags = [];
+
+    // Add medium as a tag if it exists
+    if (artwork.medium) {
+        generatedTags.push(artwork.medium.toLowerCase());
+    }
+
+    // Add status as a tag if it's meaningful
+    if (artwork.status && artwork.status !== 'available' && artwork.status !== 'sold') {
+        generatedTags.push(artwork.status.toLowerCase());
+    }
+
+    // Extract potential tags from notes
+    if (artwork.notes) {
+        const noteWords = artwork.notes.toLowerCase().split(/\s+/);
+        const potentialTags = noteWords.filter(word =>
+            word.length > 3 &&
+            !['this', 'that', 'with', 'from', 'have', 'been', 'were', 'they', 'their'].includes(word)
+        );
+        generatedTags.push(...potentialTags);
+    }
+
+    // Extract potential tags from name
+    if (artwork.itemName) {
+        const nameWords = artwork.itemName.toLowerCase().split(/\s+/);
+        const potentialTags = nameWords.filter(word =>
+            word.length > 3 &&
+            !['this', 'that', 'with', 'from', 'have', 'been', 'were', 'they', 'their'].includes(word)
+        );
+        generatedTags.push(...potentialTags);
+    }
+
+    // Add originalId as a tag if it exists
+    if (artwork.originalId) {
+        generatedTags.push(artwork.originalId.toLowerCase());
+    }
+
+    // Remove duplicates
+    return [...new Set(generatedTags)];
+};
+
 // Updated function to handle Google Drive URLs correctly for thumbnails
 const transformGoogleDriveUrl = (url) => {
     if (!url) return '';
-
-    // Log the URL for debugging
-    console.log('Processing image URL:', url);
 
     // Handle Google Drive links
     if (url.includes('drive.google.com')) {
@@ -40,13 +80,11 @@ const transformGoogleDriveUrl = (url) => {
             fileId = fileIdMatch ? fileIdMatch[0] : null;
         }
 
-        console.log('Extracted file ID:', fileId);
 
         if (fileId) {
             // For Google Drive images, use the direct thumbnail approach with moderate size
             // This method avoids CSP issues by using Google's thumbnail API
             const thumbnailUrl = `https://lh3.googleusercontent.com/d/${fileId}=w800`;
-            console.log('Generated thumbnail URL:', thumbnailUrl);
             return thumbnailUrl;
         }
     }
@@ -65,7 +103,6 @@ const extractFileId = (url) => {
             // Extract the ID part before any additional parameters
             return idParam.split('&')[0];
         }
-        // Handle "file/d" format URLs: https://drive.google.com/file/d/FILE_ID/view
         else if (url.includes('/file/d/')) {
             const parts = url.split('/file/d/')[1].split('/');
             if (parts.length > 0) {
@@ -92,6 +129,17 @@ export const Gallery = ({ title, galleryFilter }) => {
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [hoveredItem, setHoveredItem] = useState(null);
 
+    // Check which Firestore instance we're connected to
+    useEffect(() => {
+
+        // Try to determine if we're connected to the emulator
+        const isEmulator = db._databaseId?.projectId === 'haven-artsite' &&
+                          (db._settings?.host?.includes('localhost') ||
+                           db._settings?.useFetchStreams === false);
+
+        console.log('Connected to emulator (detected):', isEmulator);
+    }, []);
+
     useEffect(() => {
         const fetchArtworks = async () => {
             try {
@@ -111,10 +159,29 @@ export const Gallery = ({ title, galleryFilter }) => {
                     const artworksRef = collection(db, 'artwork');
                     const q = query(artworksRef, where('imageUrl', '>', ''));
                     const querySnapshot = await getDocs(q);
-                    const allArtworks = querySnapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                    }));
+                    const allArtworks = querySnapshot.docs.map(doc => {
+                        const data = doc.data();
+
+                        // Check for tags field
+                        if ('tags' in data) {
+                            console.log('SELECTED filter - Tags found:', doc.id, data.tags);
+                        } else {
+                            // Try to access tags directly
+                            const tagsValue = data['tags'];
+                         }
+
+                        const artwork = {
+                            id: doc.id,
+                            ...data
+                        };
+
+                        // If tags are missing, generate them from other fields
+                        if (!artwork.tags) {
+                            artwork.tags = generateTagsFromArtwork(artwork);
+                        }
+
+                        return artwork;
+                    });
 
                     const filteredArtworks = allArtworks.filter(artwork =>
                         favoriteIds.includes(artwork.id)
@@ -133,24 +200,75 @@ export const Gallery = ({ title, galleryFilter }) => {
                             // with images and filter client-side
                             const q = query(artworksRef, ...conditions);
                             const querySnapshot = await getDocs(q);
-                            const allArtworks = querySnapshot.docs.map(doc => ({
-                                id: doc.id,
-                                ...doc.data()
-                            }));
+                            const allArtworks = querySnapshot.docs.map(doc => {
+                                const data = doc.data();
+
+
+                                // Check if tags exist in the raw data
+                                if ('tags' in data) {
+
+                                } else {
+
+                                    // Check if there's a hidden or non-enumerable tags property
+                                    const descriptors = Object.getOwnPropertyDescriptors(data);
+
+                                    // Try to access tags directly
+                                    const tagsValue = data['tags'];
+
+                                    // Check the raw document data
+                                    // Try to access the raw data
+                                    try {
+                                        const rawData = doc._document?.data?.value?.mapValue?.fields;
+                                        if (rawData && rawData.tags) {
+                                         }
+                                    } catch (e) {
+                                    }
+                                }
+
+                                // Create the artwork object
+                                const artwork = {
+                                    id: doc.id,
+                                    ...data
+                                };
+
+                                // If tags are missing, generate them from other fields
+                                if (!artwork.tags) {
+                                    artwork.tags = generateTagsFromArtwork(artwork);
+                                }
+
+                                return artwork;
+                            });
+
 
                             // Filter artworks that have at least one matching tag
                             const filteredArtworks = allArtworks.filter(artwork => {
                                 // If the artwork has no tags, it doesn't match
-                                if (!artwork.tags || !Array.isArray(artwork.tags)) {
-                                    return false;
+                                if (!artwork.tags) {
+                                     return false;
                                 }
 
+                                // Convert tags to array if it's a string (comma-separated)
+                                const artworkTags = Array.isArray(artwork.tags)
+                                    ? artwork.tags
+                                    : typeof artwork.tags === 'string'
+                                        ? artwork.tags.split(',').map(tag => tag.trim())
+                                        : [];
+
+                                if (artworkTags.length === 0) {
+                                   return false;
+                                }
+
+
                                 // Check if any of the artwork's tags match any of the filter tags
-                                return galleryFilter.some(filterTag =>
-                                    artwork.tags.some(artworkTag =>
-                                        artworkTag.toLowerCase() === filterTag.toLowerCase()
-                                    )
-                                );
+                                const hasMatch = galleryFilter.some(filterTag => {
+                                     return artworkTags.some(artworkTag => {
+                                        const isMatch = artworkTag.toLowerCase().includes(filterTag.toLowerCase()) ||
+                                                      filterTag.toLowerCase().includes(artworkTag.toLowerCase());
+                                        return isMatch;
+                                    });
+                                });
+
+                                return hasMatch;
                             });
 
                             setArtworks(filteredArtworks);
