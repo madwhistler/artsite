@@ -111,27 +111,10 @@ export const Editable = ({ title, image, textFile }) => {
                 <h1>{title}</h1>
 
                 <div className="editable-controls">
-                    {!currentUser && (
-                        <div className="login-message">
-                            <em>Log in to edit content</em>
-                        </div>
-                    )}
                     {currentUser && !canEdit() && (
                         <div className="permission-message">
                             <em>You don't have permission to edit this content</em>
                         </div>
-                    )}
-                    {canEdit() && (
-                        <EditableControls
-                            isEditing={isEditing}
-                            onEditToggle={handleEditToggle}
-                            onSave={handleSave}
-                            isSaving={isSaving}
-                            saveStatus={saveStatus}
-                        />
-                    )}
-                    {saveStatus && (
-                        <span className="editable-save-status">{saveStatus}</span>
                     )}
                 </div>
             </div>
@@ -145,11 +128,15 @@ export const Editable = ({ title, image, textFile }) => {
                     isEditing={isEditing}
                     onImageUpload={handleImageUpload}
                 />
-
                 <EditableContent
                     content={content}
                     isEditing={isEditing}
                     onChange={handleContentChange}
+                    onEditToggle={handleEditToggle}
+                    onSave={handleSave}
+                    isSaving={isSaving}
+                    saveStatus={saveStatus}
+                    canEdit={canEdit()}
                 />
             </div>
         </div>
