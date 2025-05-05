@@ -25,7 +25,8 @@ export const useNavigationControls = (navigationState) => {
         setHoveredTile,
         animations,
         activeTiles,
-        animationKeyRef
+        animationKeyRef,
+        animationLimiter
     } = navigationState;
 
     // Reset active tiles to initial state
@@ -74,12 +75,18 @@ export const useNavigationControls = (navigationState) => {
 
     // Handle animation completion
     const handleContractionEnd = useCallback((sourceId) => {
-        setAnimations(prev => {
-            const next = new Map(prev);
-            next.delete(sourceId);
-            return next;
-        });
-    }, [setAnimations]);
+        // Use the animation limiter to terminate the animation
+        if (animationLimiter) {
+            animationLimiter.terminateAnimation(sourceId);
+        } else {
+            // Fallback if limiter is not available
+            setAnimations(prev => {
+                const next = new Map(prev);
+                next.delete(sourceId);
+                return next;
+            });
+        }
+    }, [animationLimiter, setAnimations]);
 
     // Handle tile state updates on hover/tap
     const updateActiveStates = useCallback((tileId) => {
@@ -106,23 +113,30 @@ export const useNavigationControls = (navigationState) => {
 
         // Handle expansion for active tiles that have expansion sets
         if (EXPANSION_SETS[tileId]) {
-            setAnimations(prev => {
-                const next = new Map(prev);
-                next.set(tileId, { expanding: true, contracting: false });
-                return next;
-            });
+            // Check if this tile is the current root expansion tile
+            const isCurrentRootTile = tileId === currentExpansionTile;
 
-            // Add expansion targets to active tiles while preserving core tiles
-            setActiveTiles(prev => {
-                const next = new Set(prev);
-                getExpansionSet(tileId).forEach(target => next.add(target));
-                return ensureCoreTiles(next);
-            });
+            // Only prevent expansion for the current root tile
+            if (!isCurrentRootTile) {
+                setAnimations(prev => {
+                    const next = new Map(prev);
+                    next.set(tileId, { expanding: true, contracting: false });
+                    return next;
+                });
 
-            activeExpansionRef.current = tileId;
-            animationKeyRef.current += 1;
+                // Add expansion targets to active tiles while preserving core tiles
+                setActiveTiles(prev => {
+                    const next = new Set(prev);
+                    getExpansionSet(tileId).forEach(target => next.add(target));
+                    return ensureCoreTiles(next);
+                });
+
+                activeExpansionRef.current = tileId;
+                animationKeyRef.current += 1;
+            }
         }
 
+        // Always update the hovered tile
         setHoveredTile(tileId);
     }, [
         contractQuadrant,

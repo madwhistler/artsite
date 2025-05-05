@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿// config.js
+﻿// config.js
 import { Gallery } from './pages/Gallery';
 import { Editable } from './pages/Editable.jsx';
 
@@ -6,6 +6,9 @@ import { Editable } from './pages/Editable.jsx';
 export const TILE_SIZE = 96;
 export const TILE_OVERLAP = 6;
 export const GRID_SIZE = 6;
+
+// Animation Configuration
+export const MAX_CONCURRENT_ANIMATIONS = 4;
 
 // Core tiles that are initially active
 export const CORE_TILES = ['r1', 'g1', 'b1', 'y1'];
@@ -177,6 +180,7 @@ export const ANIMATIONS = {
         { type: ANIMATION_TYPES.TILE, src: '/Green_Idle.mp4' },
         { type: ANIMATION_TYPES.EXPANSION, src: '/Green_Up-left.mp4' },
         { type: ANIMATION_TYPES.CONTRACTION, src: '/Green_Up-left_Reverse.mp4' },
+        { type: ANIMATION_TYPES.BACKGROUND, src: '/Lavanic_Border.mp4' }
     ],
     'r2': [
         { type: ANIMATION_TYPES.EXPANSION, src: '/Green_Down-left.mp4' },
@@ -185,7 +189,7 @@ export const ANIMATIONS = {
     'r3': [
         { type: ANIMATION_TYPES.EXPANSION, src: '/Green_Up-left.mp4' },
         { type: ANIMATION_TYPES.CONTRACTION, src: '/Green_Up-left_Reverse.mp4' },
-        { type: ANIMATION_TYPES.BACKGROUND, src: '/Mihu_Frame_.mp4' }
+        { type: ANIMATION_TYPES.BACKGROUND, src: '/Mihu_Frame.mp4' }
     ],
     'r4': [
         { type: ANIMATION_TYPES.EXPANSION, src: '/Green_Up-right.mp4' },
@@ -203,7 +207,7 @@ export const ANIMATIONS = {
     'g3': [
         { type: ANIMATION_TYPES.EXPANSION, src: '/Blue_Up-right.mp4' },
         { type: ANIMATION_TYPES.CONTRACTION, src: '/Blue_Up-right_Reverse.mp4' },
-        { type: ANIMATION_TYPES.BACKGROUND, src: '/Mihu_Frame_.mp4' }
+        { type: ANIMATION_TYPES.BACKGROUND, src: '/Mihu_Frame.mp4' }
     ],
     'g4': [
         { type: ANIMATION_TYPES.EXPANSION, src: '/Blue_Down-right.mp4' },
@@ -221,7 +225,7 @@ export const ANIMATIONS = {
     'b3': [
         { type: ANIMATION_TYPES.EXPANSION, src: '/Pink_Down-right.mp4' },
         { type: ANIMATION_TYPES.CONTRACTION, src: '/Pink_Down-right_Reverse.mp4' },
-        { type: ANIMATION_TYPES.BACKGROUND, src: '/Mihu_Frame_.mp4' }
+        { type: ANIMATION_TYPES.BACKGROUND, src: '/Mihu_Frame.mp4' }
     ],
     'b4': [
         { type: ANIMATION_TYPES.EXPANSION, src: '/Pink_Down-left.mp4' },
@@ -231,6 +235,7 @@ export const ANIMATIONS = {
         { type: ANIMATION_TYPES.TILE, src: '/Orange_Idle.mp4' },
         { type: ANIMATION_TYPES.EXPANSION, src: '/Orange_Down-left.mp4' },
         { type: ANIMATION_TYPES.CONTRACTION, src: '/Orange_Down-left_Reverse.mp4' },
+        { type: ANIMATION_TYPES.BACKGROUND, src: '/Lavanic_Border.mp4' }
     ],
     'y2': [
         { type: ANIMATION_TYPES.EXPANSION, src: '/Orange_Down-right.mp4' },
@@ -239,7 +244,7 @@ export const ANIMATIONS = {
     'y3': [
         { type: ANIMATION_TYPES.EXPANSION, src: '/Orange_Down-left.mp4' },
         { type: ANIMATION_TYPES.CONTRACTION, src: '/Orange_Down-left_Reverse.mp4' },
-        { type: ANIMATION_TYPES.BACKGROUND, src: '/Mihu_Frame_.mp4' }
+        { type: ANIMATION_TYPES.BACKGROUND, src: '/Mihu_Frame.mp4' }
     ],
     'y4': [
         { type: ANIMATION_TYPES.EXPANSION, src: '/Orange_Up-left.mp4' },
@@ -249,14 +254,6 @@ export const ANIMATIONS = {
 
 // Initial Active Tiles - only the core tiles are initially active
 export const INITIAL_ACTIVE_TILES = CORE_TILES;
-
-// Grid Layout and Expansion Sets remain the same
-export const GRID_LOCATIONS = {
-    'r1': [2, 2], 'r2': [2, 1], 'r3': [1, 1], 'r4': [1, 2],
-    'g1': [2, 3], 'g2': [1, 3], 'g3': [1, 4], 'g4': [2, 4],
-    'b1': [3, 3], 'b2': [3, 4], 'b3': [4, 4], 'b4': [4, 3],
-    'y1': [3, 2], 'y2': [4, 2], 'y3': [4, 1], 'y4': [3, 1]
-};
 
 export const EXPANSION_SETS = {
     'r1': ['r3', 'r4', 'r1', 'r2'],

@@ -17,6 +17,8 @@ export const useNavigationState = (initialActiveTiles) => {
         animations,
         setAnimations,
         animationKeyRef,
-        activeExpansionRef
+        activeExpansionRef,
+        // The animation limiter will be added by the ArtDecoNav component
+        animationLimiter: null
     };
 };

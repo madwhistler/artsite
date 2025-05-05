@@ -8,7 +8,9 @@ import {
     GRID_LAYOUT,
     ANIMATIONS,
     ANIMATION_TYPES,
+    MAX_CONCURRENT_ANIMATIONS
 } from '../config';
+import { useAnimationLimiter } from '../hooks/useAnimationLimiter';
 import { useNavigationState } from './NavigationState';
 import { useNavigationControls } from './NavigationControls';
 import { useDeviceDetection } from '../hooks/useDeviceDetection';
@@ -26,6 +28,16 @@ export const ArtDecoNav = () => {
         setHoveredTile,
         setAnimations
     } = navigationState;
+
+    // Use animation limiter to control the number of concurrent animations
+    const animationLimiter = useAnimationLimiter(
+        animations,
+        setAnimations,
+        MAX_CONCURRENT_ANIMATIONS
+    );
+
+    // Assign the animation limiter to the navigation state
+    navigationState.animationLimiter = animationLimiter;
 
     const {
         handleContractionEnd,
@@ -69,7 +81,7 @@ export const ArtDecoNav = () => {
 
                 allAnimations.push(
                     <AnimationOverlay
-                        key={`${sourceId}-${animation.type}-${state.expanding ? 'expand' : 'contract'}-${animationKeyRef.current}`}
+                        key={`${sourceId}-${animation.type}-${state.expanding ? 'expand' : 'contract'}`}
                         animationData={animation}
                         sourceId={sourceId}
                         type={animation.type}
@@ -82,7 +94,7 @@ export const ArtDecoNav = () => {
         });
 
         return allAnimations;
-    }, [animations, activeTiles, handleContractionEnd, animationKeyRef]);
+    }, [animations, activeTiles, handleContractionEnd]);
 
     const renderIdleAnimations = useCallback(() => {
         return Array.from(activeTiles).map(tileId => {
@@ -96,7 +108,7 @@ export const ArtDecoNav = () => {
 
             return (
                 <AnimationOverlay
-                    key={`${tileId}-idle-${animationKeyRef.current}`}
+                    key={`${tileId}-idle`}
                     animationData={tileAnimation}
                     sourceId={tileId}
                     type={ANIMATION_TYPES.TILE}
@@ -104,10 +116,46 @@ export const ArtDecoNav = () => {
                 />
             );
         });
-    }, [activeTiles, animations, animationKeyRef]);
+    }, [activeTiles, animations]);
+
+    // Get current animation counts for debug display
+    const animationCount = animationLimiter.getTotalAnimationCount();
+    const isOverLimit = animationCount > MAX_CONCURRENT_ANIMATIONS;
 
     return (
         <div style={styles.container}>
+            {/* Debug display for animation counts */}
+            <div style={{
+                position: 'fixed',
+                bottom: '20px',
+                right: '10px',
+                backgroundColor: isOverLimit ? 'rgba(255, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.5)',
+                color: 'white',
+                padding: '5px 10px',
+                borderRadius: '4px',
+                fontSize: '12px',
+                fontFamily: 'monospace',
+                zIndex: 1000,
+                pointerEvents: 'auto'
+            }}>
+                Animations: {animationCount}/{MAX_CONCURRENT_ANIMATIONS}
+                <button
+                    onClick={() => animationLimiter.enforceLimit()}
+                    style={{
+                        marginLeft: '5px',
+                        background: 'none',
+                        border: '1px solid white',
+                        color: 'white',
+                        padding: '2px 5px',
+                        fontSize: '10px',
+                        cursor: 'pointer',
+                        borderRadius: '3px'
+                    }}
+                >
+                    Enforce
+                </button>
+            </div>
+
             <div style={styles.grid}>
                 {GRID_LAYOUT.map((row, rowIndex) => (
                     <React.Fragment key={rowIndex}>
