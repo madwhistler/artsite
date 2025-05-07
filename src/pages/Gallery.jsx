@@ -54,8 +54,13 @@ const generateTagsFromArtwork = (artwork) => {
 };
 
 // Updated function to handle Google Drive URLs correctly for thumbnails
-const transformGoogleDriveUrl = (url) => {
+const transformGoogleDriveUrl = (url, useCacheBusting = false) => {
     if (!url) return '';
+
+    // If it's already a Google Photos URL, return it as is
+    if (url.includes('lh3.googleusercontent.com')) {
+        return url;
+    }
 
     // Handle Google Drive links
     if (url.includes('drive.google.com')) {
@@ -80,12 +85,29 @@ const transformGoogleDriveUrl = (url) => {
             fileId = fileIdMatch ? fileIdMatch[0] : null;
         }
 
-
         if (fileId) {
             // For Google Drive images, use the direct thumbnail approach with moderate size
             // This method avoids CSP issues by using Google's thumbnail API
-            const thumbnailUrl = `https://lh3.googleusercontent.com/d/${fileId}=w800`;
+            // Use w0 parameter to get the original size image without cropping
+            let thumbnailUrl = `https://lh3.googleusercontent.com/d/${fileId}=w0`;
+
+            // Only add cache-busting when explicitly requested (for retries)
+            if (useCacheBusting) {
+                const cacheBuster = new Date().getTime();
+                thumbnailUrl += `?cb=${cacheBuster}`;
+            }
+
+            console.log(`Transformed Google Drive URL: ${url} -> ${thumbnailUrl}`);
             return thumbnailUrl;
+        }
+    }
+
+    // Only add cache-busting when explicitly requested
+    if (useCacheBusting) {
+        if (url.includes('?')) {
+            return `${url}&cb=${new Date().getTime()}`;
+        } else {
+            return `${url}?cb=${new Date().getTime()}`;
         }
     }
 
@@ -128,6 +150,7 @@ export const Gallery = ({ title, galleryFilter }) => {
     const [selectedArtwork, setSelectedArtwork] = useState(null);
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [hoveredItem, setHoveredItem] = useState(null);
+    const [visibleCount, setVisibleCount] = useState(12); // Initial batch size for progressive loading
 
     // Check which Firestore instance we're connected to
     useEffect(() => {
@@ -139,6 +162,29 @@ export const Gallery = ({ title, galleryFilter }) => {
 
         console.log('Connected to emulator (detected):', isEmulator);
     }, []);
+
+    // Function to load more images
+    const loadMoreImages = () => {
+        setVisibleCount(prevCount => Math.min(prevCount + 12, artworks.length));
+    };
+
+    // Handle scroll events for infinite scrolling
+    useEffect(() => {
+        const handleScroll = () => {
+            // Check if we're near the bottom of the page
+            if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
+                loadMoreImages();
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [artworks.length]);
+
+    // Reset visible count when artworks change
+    useEffect(() => {
+        setVisibleCount(12);
+    }, [artworks]);
 
     useEffect(() => {
         const fetchArtworks = async () => {
@@ -347,7 +393,7 @@ export const Gallery = ({ title, galleryFilter }) => {
                 )}
 
                 <div style={galleryStyles.grid}>
-                    {artworks.map(artwork => (
+                    {artworks.slice(0, visibleCount).map(artwork => (
                         <div
                             key={artwork.id}
                             style={{
@@ -365,8 +411,28 @@ export const Gallery = ({ title, galleryFilter }) => {
                                     loading="lazy"
                                     style={galleryStyles.image}
                                     onError={(e) => {
-                                        console.error('Image failed to load:', artwork.imageUrl);
-                                        e.target.src = 'https://via.placeholder.com/400x300?text=Image+Not+Available';
+                                        // Prevent infinite error loop by checking if already using placeholder
+                                        if (e.target.dataset.retryCount >= 2 || e.target.src.includes('placeholder.com')) {
+                                            if (!e.target.dataset.usedPlaceholder) {
+                                                console.error('Image failed to load after retries:', artwork.imageUrl);
+                                                e.target.src = 'https://via.placeholder.com/400x300?text=Image+Not+Available';
+                                                // Set a flag to prevent further error handling
+                                                e.target.dataset.usedPlaceholder = 'true';
+                                            }
+                                            return;
+                                        }
+
+                                        // Track retry count
+                                        const retryCount = parseInt(e.target.dataset.retryCount || '0', 10) + 1;
+                                        e.target.dataset.retryCount = retryCount;
+
+                                        console.warn(`Retry ${retryCount} for image:`, artwork.imageUrl);
+
+                                        // Add a small delay before retrying to avoid rate limits
+                                        setTimeout(() => {
+                                            // Use cache-busting for retries
+                                            e.target.src = transformGoogleDriveUrl(artwork.imageUrl, true);
+                                        }, 1000 * retryCount); // Increasing delay for each retry
                                     }}
                                 />
                                 {hoveredItem === artwork.id && (

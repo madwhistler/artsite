@@ -1,6 +1,7 @@
 ﻿// config.js
 import { Gallery } from './pages/Gallery';
 import { Editable } from './pages/Editable.jsx';
+import { EditableMulti } from './pages/EditableMulti.jsx';
 
 // Grid Configuration
 export const TILE_SIZE = 96;
@@ -46,11 +47,22 @@ export const PAGES = {
     'y1': {
         title: 'You + Me',
         path: '/youme',
-        component: Editable, // Using our test component with the refactored Editable
+        component: EditableMulti,
         props: {
             title: 'You + Me',
-            image: '/Haven.jpeg',
-            textFile: '/ArtistBio.html'
+            pageId: 'youme',
+            sections: [
+                {
+                    image: '/Haven.jpeg',
+                    align: 'right',
+                    content: '/ArtistBio.html'
+                },
+                {
+                    image: '/Haven2.jpeg',
+                    align: 'left',
+                    content: '/ArtistStatement.html'
+                }
+            ]
         }
     },
     'r2': {
@@ -162,6 +174,27 @@ export const PAGES = {
             image: '/paradoxpath.jpg',
             textFile: '/ParadoxPath.html'
         }
+    },
+    'b5': {
+        title: 'BEAR',
+        path: '/bear',
+        component: EditableMulti,
+        props: {
+            title: 'One Who Bears',
+            pageId: 'bear',
+            sections: [
+                {
+                    image: '/inbear.jpg',
+                    align: 'right',
+                    content: '/OneWhoBears.html'
+                },
+                {
+                    image: '/beardrawing.jpg',
+                    align: 'left',
+                    content: '/DrawingInBear.html'
+                }
+            ]
+        }
     }
 };
 
@@ -179,8 +212,7 @@ export const ANIMATIONS = {
     'r1': [
         { type: ANIMATION_TYPES.TILE, src: '/Green_Idle.mp4' },
         { type: ANIMATION_TYPES.EXPANSION, src: '/Green_Up-left.mp4' },
-        { type: ANIMATION_TYPES.CONTRACTION, src: '/Green_Up-left_Reverse.mp4' },
-        { type: ANIMATION_TYPES.BACKGROUND, src: '/Lavanic_Border.mp4' }
+        { type: ANIMATION_TYPES.CONTRACTION, src: '/Green_Up-left_Reverse.mp4' }
     ],
     'r2': [
         { type: ANIMATION_TYPES.EXPANSION, src: '/Green_Down-left.mp4' },
@@ -189,7 +221,7 @@ export const ANIMATIONS = {
     'r3': [
         { type: ANIMATION_TYPES.EXPANSION, src: '/Green_Up-left.mp4' },
         { type: ANIMATION_TYPES.CONTRACTION, src: '/Green_Up-left_Reverse.mp4' },
-        { type: ANIMATION_TYPES.BACKGROUND, src: '/Mihu_Frame.mp4' }
+        { type: ANIMATION_TYPES.BACKGROUND, src: '/Mihu_Frame.mp4', scale: 1.0, position: 'center' }
     ],
     'r4': [
         { type: ANIMATION_TYPES.EXPANSION, src: '/Green_Up-right.mp4' },
@@ -207,7 +239,7 @@ export const ANIMATIONS = {
     'g3': [
         { type: ANIMATION_TYPES.EXPANSION, src: '/Blue_Up-right.mp4' },
         { type: ANIMATION_TYPES.CONTRACTION, src: '/Blue_Up-right_Reverse.mp4' },
-        { type: ANIMATION_TYPES.BACKGROUND, src: '/Mihu_Frame.mp4' }
+        { type: ANIMATION_TYPES.BACKGROUND, src: '/Mihu_Frame.mp4', scale: 1.0, position: 'center' }
     ],
     'g4': [
         { type: ANIMATION_TYPES.EXPANSION, src: '/Blue_Down-right.mp4' },
@@ -217,25 +249,28 @@ export const ANIMATIONS = {
         { type: ANIMATION_TYPES.TILE, src: '/Pink_Idle.mp4' },
         { type: ANIMATION_TYPES.EXPANSION, src: '/Pink_Down-right.mp4' },
         { type: ANIMATION_TYPES.CONTRACTION, src: '/Pink_Down-right_Reverse.mp4' },
+        { type: ANIMATION_TYPES.BACKGROUND, src: '/Lavanic_Border.mp4', scale: 1.0, position: 'top' }
     ],
     'b2': [
         { type: ANIMATION_TYPES.EXPANSION, src: '/Pink_Up-right.mp4' },
-        { type: ANIMATION_TYPES.CONTRACTION, src: '/Pink_Up-right_Reverse.mp4' }
+        { type: ANIMATION_TYPES.CONTRACTION, src: '/Pink_Up-right_Reverse.mp4' },
+        { type: ANIMATION_TYPES.BACKGROUND, src: '/Lavanic_Border.mp4', scale: 1.0, position: 'bottom' }
     ],
     'b3': [
         { type: ANIMATION_TYPES.EXPANSION, src: '/Pink_Down-right.mp4' },
         { type: ANIMATION_TYPES.CONTRACTION, src: '/Pink_Down-right_Reverse.mp4' },
-        { type: ANIMATION_TYPES.BACKGROUND, src: '/Mihu_Frame.mp4' }
+        { type: ANIMATION_TYPES.BACKGROUND, src: '/Lavanic_Border.mp4', scale: 1.0, position: 'top' }
     ],
     'b4': [
         { type: ANIMATION_TYPES.EXPANSION, src: '/Pink_Down-left.mp4' },
-        { type: ANIMATION_TYPES.CONTRACTION, src: '/Pink_Down-left_Reverse.mp4' }
+        { type: ANIMATION_TYPES.CONTRACTION, src: '/Pink_Down-left_Reverse.mp4' },
+        { type: ANIMATION_TYPES.BACKGROUND, src: '/Lavanic_Border.mp4', scale: 0.5, position: 'top' }
     ],
     'y1': [
         { type: ANIMATION_TYPES.TILE, src: '/Orange_Idle.mp4' },
         { type: ANIMATION_TYPES.EXPANSION, src: '/Orange_Down-left.mp4' },
         { type: ANIMATION_TYPES.CONTRACTION, src: '/Orange_Down-left_Reverse.mp4' },
-        { type: ANIMATION_TYPES.BACKGROUND, src: '/Lavanic_Border.mp4' }
+        { type: ANIMATION_TYPES.BACKGROUND, src: '/Mihu_Frame.mp4', scale: 1.0, position: 'center' }
     ],
     'y2': [
         { type: ANIMATION_TYPES.EXPANSION, src: '/Orange_Down-right.mp4' },
@@ -244,7 +279,6 @@ export const ANIMATIONS = {
     'y3': [
         { type: ANIMATION_TYPES.EXPANSION, src: '/Orange_Down-left.mp4' },
         { type: ANIMATION_TYPES.CONTRACTION, src: '/Orange_Down-left_Reverse.mp4' },
-        { type: ANIMATION_TYPES.BACKGROUND, src: '/Mihu_Frame.mp4' }
     ],
     'y4': [
         { type: ANIMATION_TYPES.EXPANSION, src: '/Orange_Up-left.mp4' },

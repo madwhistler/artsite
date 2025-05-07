@@ -40,7 +40,7 @@
     flex-wrap: wrap;
 }
 
-.editable-content {
+.editable-content, .editable-sections {
     display: block;
     flex: 1;
     width: 100%;

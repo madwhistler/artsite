@@ -52,7 +52,7 @@ export const galleryStyles = {
     image: {
         width: '100%',
         height: '100%',
-        objectFit: 'cover',
+        objectFit: 'contain', // Changed from 'cover' to 'contain' to preserve aspect ratio
         objectPosition: 'center',
         position: 'absolute',
         top: 0,

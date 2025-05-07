@@ -77,12 +77,12 @@ export const styles = {
     },
     backgroundAnimation: {
         position: 'fixed',
-        top: 0,
-        left: 0,
         width: '100vw',
         height: '100vh',
-        zIndex: 1,
-        overflow: 'hidden',
+        zIndex: 5, // Lower z-index to ensure it appears below grid and tile elements
+        overflow: 'visible', // Changed from hidden to visible to prevent truncation
+        transformOrigin: 'center center',
+        pointerEvents: 'none', // Allow clicking through the animation
     },
     animationContent: {
         width: '100%',
@@ -90,12 +90,50 @@ export const styles = {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        objectFit: 'cover',
+        objectFit: 'contain', // Changed from cover to contain to prevent cropping
+        pointerEvents: 'none', // Allow clicking through the animation
+        zIndex: 'inherit', // Inherit z-index from parent
+    },
+
+    // Position-specific styles for background animations
+    backgroundPositionTop: {
+        top: 0,
+        left: '50%',
+        transformOrigin: 'top center',
+    },
+    backgroundPositionBottom: {
+        bottom: 0,
+        left: '50%',
+        transformOrigin: 'bottom center',
+    },
+    backgroundPositionLeft: {
+        left: 0,
+        top: '50%',
+        transformOrigin: 'center left',
+    },
+    backgroundPositionRight: {
+        right: 0,
+        top: '50%',
+        transformOrigin: 'center right',
+    },
+    backgroundPositionCenter: {
+        top: '50%',
+        left: '50%',
+        transformOrigin: 'center center',
     },
     backgroundContent: {
         width: '100%',
         height: '100%',
         objectFit: 'cover',
         objectPosition: 'center',
+    },
+
+    // Special styles for videos that need to preserve aspect ratio
+    preserveAspectRatio: {
+        objectFit: 'contain',
+        width: 'auto',
+        height: 'auto',
+        maxWidth: '100%',
+        maxHeight: '100%',
     },
 };

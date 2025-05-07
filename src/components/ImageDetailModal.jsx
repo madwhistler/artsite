@@ -121,9 +121,10 @@ const ImageDetailModal = ({ isOpen, onClose, artwork, originalFileId }) => {
     // Get the high-resolution file ID
     const fileId = originalFileId || (artwork?.imageUrl?.match(/[-\w]{25,}/) || [])[0];
 
-    // Build a high-resolution image URL from Google Drive
+    // Build a high-resolution image URL from Google Drive without cache-busting initially
+    // Use w0 parameter to get the original size image without cropping
     const fullImageUrl = fileId
-        ? `https://lh3.googleusercontent.com/d/${fileId}=w2000`
+        ? `https://lh3.googleusercontent.com/d/${fileId}=w0`
         : artwork?.imageUrl;
 
     useEffect(() => {
@@ -293,6 +294,46 @@ const ImageDetailModal = ({ isOpen, onClose, artwork, originalFileId }) => {
                             opacity: loading ? 0 : 1
                         }}
                         onLoad={handleImageLoad}
+                        onError={(e) => {
+                            // Prevent infinite error loop by checking retry count
+                            if (e.target.dataset.retryCount >= 2) {
+                                console.error('High-resolution image failed to load after retries:', fullImageUrl);
+
+                                // Try original URL as fallback
+                                if (fileId && !e.target.dataset.usedOriginal) {
+                                    console.log('Falling back to original URL:', artwork?.imageUrl);
+                                    e.target.src = artwork?.imageUrl;
+                                    e.target.dataset.usedOriginal = 'true';
+                                    e.target.dataset.retryCount = '0'; // Reset retry count for original URL
+                                    return; // Don't mark as loaded yet
+                                }
+                                // Use placeholder as last resort
+                                else if (!e.target.dataset.usedPlaceholder) {
+                                    e.target.src = 'https://via.placeholder.com/800x600?text=Image+Not+Available';
+                                    e.target.dataset.usedPlaceholder = 'true';
+                                    handleImageLoad(); // Mark as loaded
+                                }
+                                return;
+                            }
+
+                            // Track retry count
+                            const retryCount = parseInt(e.target.dataset.retryCount || '0', 10) + 1;
+                            e.target.dataset.retryCount = retryCount;
+
+                            console.warn(`Retry ${retryCount} for high-res image:`, fullImageUrl);
+
+                            // Add a small delay before retrying to avoid rate limits
+                            setTimeout(() => {
+                                // Add cache-busting for retries
+                                const cacheBuster = new Date().getTime();
+                                if (fileId) {
+                                    // Use w0 parameter to get the original size image without cropping
+                                    e.target.src = `https://lh3.googleusercontent.com/d/${fileId}=w0?cb=${cacheBuster}`;
+                                } else if (artwork?.imageUrl) {
+                                    e.target.src = artwork.imageUrl + (artwork.imageUrl.includes('?') ? `&cb=${cacheBuster}` : `?cb=${cacheBuster}`);
+                                }
+                            }, 1500 * retryCount); // Increasing delay for each retry
+                        }}
                         onMouseDown={handleMouseDown}
                         onTouchStart={handleTouchStart}
                         onDoubleClick={handleDoubleClick}

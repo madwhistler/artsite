@@ -1,0 +1,43 @@
+/* EditableSection.css */
+
+.editable-section {
+    display: block;
+    width: 100%;
+    margin-bottom: 3rem;
+    position: relative;
+    overflow: visible;
+}
+
+.editable-section::after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+/* Left-aligned image (default) */
+.editable-image-container.align-left {
+    float: left;
+    margin: 0 1rem 0.75rem 0;
+}
+
+/* Right-aligned image */
+.editable-image-container.align-right {
+    float: right;
+    margin: 0 0 0.75rem 1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 767px) {
+    .editable-section {
+        margin-bottom: 2rem;
+    }
+    
+    .editable-image-container.align-left,
+    .editable-image-container.align-right {
+        float: none;
+        width: 100%;
+        max-width: 100%;
+        margin: 0 0 1.5rem 0;
+        text-align: center;
+    }
+}

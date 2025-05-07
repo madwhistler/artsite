@@ -11,7 +11,8 @@ export const EditableImage = ({
     originalImagePath,
     canEdit,
     isEditing,
-    onImageUpload
+    onImageUpload,
+    align = 'left'
 }) => {
     const fileInputRef = useRef(null);
     const [magnifierOpen, setMagnifierOpen] = useState(false);
@@ -28,7 +29,7 @@ export const EditableImage = ({
     };
 
     return (
-        <div className="editable-image-container">
+        <div className={`editable-image-container align-${align}`}>
             {imageUrl ? (
                 <>
                     <div className="editable-image-wrapper">

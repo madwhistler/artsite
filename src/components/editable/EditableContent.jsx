@@ -12,13 +12,15 @@ export const EditableContent = ({
     onSave,
     isSaving,
     saveStatus,
-    canEdit
+    canEdit,
+    sectionId
 }) => {
     return (
         <div className="editable-text-container">
             {isEditing ? (
                 <>
                     <textarea
+                        id={`textarea-${sectionId}`}
                         className="editable-textarea"
                         value={content}
                         onChange={onChange}
