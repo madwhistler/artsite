@@ -1,7 +1,8 @@
-﻿// config.js
+﻿﻿﻿﻿﻿﻿﻿// config.js
 import { Gallery } from './pages/Gallery';
 import { Editable } from './pages/Editable.jsx';
 import { EditableMulti } from './pages/EditableMulti.jsx';
+import { ContactForm } from './pages/ContactForm.jsx';
 
 // Grid Configuration
 export const TILE_SIZE = 96;
@@ -146,6 +147,15 @@ export const PAGES = {
             galleryFilter: 'SELECTED' // Keep this special case as is
         }
     },
+    'y4': {
+        title: 'Contact',
+        path: '/contact',
+        component: ContactForm,
+        props: {
+            emailTo: 'eilidh.haven@outlook.com',
+            backgroundAnimation: '/Contact_Background.mp4'
+        }
+    },
     'b2': {
         title: 'Translation',
         path: '/translation',
@@ -266,6 +276,11 @@ export const ANIMATIONS = {
         { type: ANIMATION_TYPES.CONTRACTION, src: '/Pink_Down-left_Reverse.mp4' },
         { type: ANIMATION_TYPES.BACKGROUND, src: '/Lavanic_Border.mp4', scale: 0.5, position: 'top' }
     ],
+    'b6': [
+        { type: ANIMATION_TYPES.EXPANSION, src: '/Pink_Up-left.mp4' },
+        { type: ANIMATION_TYPES.CONTRACTION, src: '/Pink_Up-left_Reverse.mp4' },
+        { type: ANIMATION_TYPES.BACKGROUND, src: '/Mihu_Frame.mp4', scale: 1.0, position: 'center' }
+    ],
     'y1': [
         { type: ANIMATION_TYPES.TILE, src: '/Orange_Idle.mp4' },
         { type: ANIMATION_TYPES.EXPANSION, src: '/Orange_Down-left.mp4' },
@@ -302,6 +317,7 @@ export const EXPANSION_SETS = {
     'b2': ['g4', 'b5', 'b2', 'g9'],
     'b3': ['b3', 'b7', 'b8', 'b6'],
     'b4': ['y2', 'b9', 'b4', 'y5'],
+    'b6': ['b3', 'b6', 'b7', 'b8'],
     'y1': ['y4', 'y3', 'y1', 'y2'],
     'y2': ['y2', 'y5', 'b4', 'b9'],
     'y3': ['y8', 'y7', 'y3', 'y6'],

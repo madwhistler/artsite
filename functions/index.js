@@ -1,11 +1,12 @@
-import { initializeApp } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
-import { getStorage } from "firebase-admin/storage";
+// Import shared Firebase Admin initialization
+import { db, storage } from './admin.js';
 import { google } from "googleapis";
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import * as fs from 'fs';
 import * as os from 'os';
+
+// Contact form function will be imported after Firebase Admin is initialized
 
 // Import firebase-functions using dynamic import
 let functionsV1;
@@ -21,10 +22,7 @@ try {
   console.error('Error importing firebase-functions:', error);
 }
 
-initializeApp();
-
-const db = getFirestore();
-const storage = getStorage();
+// Firebase Admin is initialized in admin.js
 
 const COLLECTION_NAME = "artwork";
 const SPREADSHEET_ID = "1M70uwu-jimO_ncWuPi7M0vtSeCaKeKr4RrB8OFbRsZU";
@@ -184,6 +182,10 @@ function formatDocument(rowData) {
     console.log('Formatted document:', JSON.stringify(document));
     return document;
 }
+
+// Import and export the contact form function
+import { sendContactEmail as contactEmailFunc } from './sendContactEmail.js';
+export const sendContactEmail = contactEmailFunc;
 
 export const syncArtworkFromSheets = onRequest({
     timeoutSeconds: 540,
