@@ -40,8 +40,17 @@ export const EditableImage = ({
                             key={`img-${Date.now()}`}
                             onError={(e) => {
                                 console.error('Error loading image:', e);
-                                e.target.onerror = null;
-                                e.target.src = originalImagePath; // Fallback to original image path
+                                // Prevent infinite loop by checking if we're already using the original path
+                                if (e.target.src.indexOf(originalImagePath) === -1) {
+                                    console.log('Falling back to original image path:', originalImagePath);
+                                    e.target.onerror = null; // Prevent further error handling
+                                    e.target.src = originalImagePath; // Fallback to original image path
+                                } else {
+                                    console.error('Both imageUrl and originalImagePath failed to load');
+                                    e.target.onerror = null; // Prevent further error handling
+                                    // Use a placeholder image instead
+                                    e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2VlZSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIGZpbGw9IiM5OTkiPkltYWdlIE5vdCBGb3VuZDwvdGV4dD48L3N2Zz4=';
+                                }
                             }}
                         />
                         <button

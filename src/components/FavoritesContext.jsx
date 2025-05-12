@@ -45,6 +45,10 @@ export const FavoritesProvider = ({ children }) => {
                 } catch (error) {
                     console.error('Error fetching favorites:', error);
                 }
+            } else {
+                // If no user is logged in, clear favorites from localStorage
+                localStorage.removeItem(STORAGE_KEY);
+                setFavorites(new Set());
             }
             setInitialized(true);
         };

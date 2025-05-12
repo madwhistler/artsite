@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, ZoomIn, ZoomOut, RotateCw } from 'lucide-react';
+import { X, ZoomIn, ZoomOut, RotateCw, Heart, Award, MessageSquare } from 'lucide-react';
 
 // Styles for the image detail modal
 const modalStyles = {
@@ -102,13 +102,23 @@ const modalStyles = {
         fontSize: '14px',
         opacity: 0.8,
     },
+    favoriteCount: {
+        display: 'flex',
+        alignItems: 'center',
+        marginTop: '8px',
+        color: '#ffcc00',
+        fontSize: '14px',
+    },
+    favoriteIcon: {
+        marginRight: '5px',
+    },
     loading: {
         color: 'white',
         fontSize: '18px',
     }
 };
 
-const ImageDetailModal = ({ isOpen, onClose, artwork, originalFileId }) => {
+const ImageDetailModal = ({ isOpen, onClose, artwork, originalFileId, isFavorite, onToggleFavorite, favoriteCount, commentCount, onCommentClick }) => {
     const [zoom, setZoom] = useState(1);
     const [rotation, setRotation] = useState(0);
     const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -118,14 +128,23 @@ const ImageDetailModal = ({ isOpen, onClose, artwork, originalFileId }) => {
     const [hoveredButton, setHoveredButton] = useState(null);
     const imageRef = useRef(null);
 
-    // Get the high-resolution file ID
-    const fileId = originalFileId || (artwork?.imageUrl?.match(/[-\w]{25,}/) || [])[0];
+    // Determine the high-resolution image URL
+    let fullImageUrl = artwork?.imageUrl;
 
-    // Build a high-resolution image URL from Google Drive without cache-busting initially
-    // Use w0 parameter to get the original size image without cropping
-    const fullImageUrl = fileId
-        ? `https://lh3.googleusercontent.com/d/${fileId}=w0`
-        : artwork?.imageUrl;
+    // If it's a Firebase Storage URL (either production or emulator), use it directly
+    if (fullImageUrl && (fullImageUrl.includes('storage.googleapis.com') ||
+                        fullImageUrl.includes('localhost:9199'))) {
+        console.log(`Using Firebase Storage URL for high-res image: ${fullImageUrl}`);
+    }
+    // If it's a Google Drive URL, extract the file ID and build a direct URL
+    else {
+        const fileId = originalFileId || (artwork?.imageUrl?.match(/[-\w]{25,}/) || [])[0];
+        if (fileId) {
+            // Build a high-resolution image URL from Google Drive without cache-busting initially
+            // Use w0 parameter to get the original size image without cropping
+            fullImageUrl = `https://lh3.googleusercontent.com/d/${fileId}=w0`;
+        }
+    }
 
     useEffect(() => {
         if (isOpen) {
@@ -326,11 +345,21 @@ const ImageDetailModal = ({ isOpen, onClose, artwork, originalFileId }) => {
                             setTimeout(() => {
                                 // Add cache-busting for retries
                                 const cacheBuster = new Date().getTime();
-                                if (fileId) {
-                                    // Use w0 parameter to get the original size image without cropping
-                                    e.target.src = `https://lh3.googleusercontent.com/d/${fileId}=w0?cb=${cacheBuster}`;
-                                } else if (artwork?.imageUrl) {
-                                    e.target.src = artwork.imageUrl + (artwork.imageUrl.includes('?') ? `&cb=${cacheBuster}` : `?cb=${cacheBuster}`);
+
+                                // If it's a Firebase Storage URL (either production or emulator), add cache busting
+                                if (fullImageUrl && (fullImageUrl.includes('storage.googleapis.com') ||
+                                                   fullImageUrl.includes('localhost:9199'))) {
+                                    e.target.src = fullImageUrl + (fullImageUrl.includes('?') ? `&cb=${cacheBuster}` : `?cb=${cacheBuster}`);
+                                }
+                                // If it's a Google Drive URL, use the file ID approach
+                                else {
+                                    const fileId = originalFileId || (artwork?.imageUrl?.match(/[-\w]{25,}/) || [])[0];
+                                    if (fileId) {
+                                        // Use w0 parameter to get the original size image without cropping
+                                        e.target.src = `https://lh3.googleusercontent.com/d/${fileId}=w0?cb=${cacheBuster}`;
+                                    } else if (artwork?.imageUrl) {
+                                        e.target.src = artwork.imageUrl + (artwork.imageUrl.includes('?') ? `&cb=${cacheBuster}` : `?cb=${cacheBuster}`);
+                                    }
                                 }
                             }, 1500 * retryCount); // Increasing delay for each retry
                         }}
@@ -346,6 +375,58 @@ const ImageDetailModal = ({ isOpen, onClose, artwork, originalFileId }) => {
                     <div style={modalStyles.details}>
                         {`${artwork.dimensions.height}x${artwork.dimensions.width}, ${artwork.medium}`}
                     </div>
+                    {favoriteCount !== undefined && (
+                        <div style={modalStyles.favoriteCount}>
+                            <Award size={16} color="#ffcc00" style={modalStyles.favoriteIcon} />
+                            <span>{favoriteCount} favorites</span>
+                        </div>
+                    )}
+                    {commentCount !== undefined && commentCount > 0 && (
+                        <div
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                marginTop: '8px',
+                                color: '#ffffff',
+                                cursor: onCommentClick ? 'pointer' : 'default'
+                            }}
+                            onClick={(e) => {
+                                if (onCommentClick) {
+                                    e.stopPropagation();
+                                    onCommentClick();
+                                }
+                            }}
+                        >
+                            <MessageSquare
+                                size={16}
+                                color="#ffffff"
+                                style={{ marginRight: '5px' }}
+                            />
+                            <span>{commentCount} comment{commentCount !== 1 ? 's' : ''}</span>
+                        </div>
+                    )}
+                    {isFavorite !== undefined && onToggleFavorite && (
+                        <div
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                marginTop: '8px',
+                                cursor: 'pointer'
+                            }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onToggleFavorite();
+                            }}
+                        >
+                            <Heart
+                                size={16}
+                                color={isFavorite ? '#ff0000' : '#ffffff'}
+                                fill={isFavorite ? '#ff0000' : 'transparent'}
+                                style={{ marginRight: '5px' }}
+                            />
+                            <span>{isFavorite ? 'Remove from favorites' : 'Add to favorites'}</span>
+                        </div>
+                    )}
                 </div>
 
                 <div style={modalStyles.controls}>

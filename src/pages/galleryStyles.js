@@ -100,6 +100,32 @@ export const galleryStyles = {
         fontSize: '0.9rem',
         color: '#cccccc'
     },
+    iconButton: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+        width: '32px',
+        height: '32px',
+        borderRadius: '50%',
+        transition: 'background-color 0.2s ease',
+        position: 'relative',
+    },
+    iconBadge: {
+        position: 'absolute',
+        top: '-5px',
+        right: '-5px',
+        backgroundColor: '#ffcc00',
+        color: '#000',
+        borderRadius: '50%',
+        width: '18px',
+        height: '18px',
+        fontSize: '10px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontWeight: 'bold'
+    },
     favoriteButton: {
         cursor: 'pointer',
         padding: '0.25rem',

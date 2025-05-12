@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { resizeAndConvertToBase64 } from '../utils/imageUtils';
 
@@ -80,7 +80,14 @@ export const useFirestoreContent = (textFilePath, imagePath) => {
                     throw new Error('Invalid text file path');
                 }
 
-                // Try to fetch from Firestore first
+                // First, check if there's incorrect content in Firestore and clear it if needed
+                console.log('Checking for incorrect content in Firestore...');
+                const wasCleared = await clearFirestoreContent();
+                if (wasCleared) {
+                    console.log('Incorrect content was cleared from Firestore');
+                }
+
+                // Try to fetch from Firestore
                 console.log('Attempting to fetch from Firestore collection: editablePages');
                 const docRef = doc(db, 'editablePages', docId);
                 const docSnap = await getDoc(docRef);
@@ -95,19 +102,68 @@ export const useFirestoreContent = (textFilePath, imagePath) => {
                 } else {
                     console.log('Document not found in Firestore, falling back to local file');
                     // Fallback to fetch from local file if not in Firestore
-                    const response = await fetch(textFilePath);
-                    console.log('Local file fetch response:', response);
-                    if (!response.ok) {
-                        throw new Error(`Failed to fetch content: ${response.statusText}`);
+                    try {
+                        // Use absolute path if textFilePath doesn't start with /
+                        const fetchPath = textFilePath.startsWith('/') ? textFilePath : `/${textFilePath}`;
+                        console.log('Fetching from path:', fetchPath);
+                        console.log('Full URL being fetched:', new URL(fetchPath, window.location.origin).href);
+                        console.log('Current window location:', window.location.href);
+
+                        // In a SPA, fetching relative paths can sometimes resolve to the index.html
+                        // Let's ensure we're fetching from the correct location by using an absolute URL
+                        // and adding a cache-busting parameter
+                        const timestamp = new Date().getTime();
+                        const absoluteUrl = new URL(fetchPath, window.location.origin).href;
+                        const urlWithCacheBusting = `${absoluteUrl}?_=${timestamp}`;
+                        console.log('Fetching with cache busting:', urlWithCacheBusting);
+
+                        const response = await fetch(urlWithCacheBusting, {
+                            headers: {
+                                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                                'Pragma': 'no-cache',
+                                'Expires': '0'
+                            }
+                        });
+                        console.log('Local file fetch response:', response);
+
+                        if (!response.ok) {
+                            throw new Error(`Failed to fetch content: ${response.statusText}`);
+                        }
+
+                        const text = await response.text();
+                        console.log('Local file content length:', text.length);
+                        console.log('Local file content preview:', text.substring(0, 100));
+
+                        if (!text || text.trim() === '') {
+                            throw new Error('Fetched content is empty');
+                        }
+
+                        // Check if we accidentally loaded a full HTML page
+                        if (text.includes('<!DOCTYPE html>') || text.includes('<html') || text.includes('<title>')) {
+                            console.error('Detected full HTML page instead of content fragment');
+                            throw new Error('Loaded a full HTML page instead of content fragment. Please check the file path.');
+                        } else {
+                            // Content looks good, use it as is
+                            setContent(text);
+                            setOriginalContent(text);
+                        }
+                        console.log('Content loaded from local file');
+                    } catch (fetchError) {
+                        console.error('Error fetching local file:', fetchError);
+                        setError(`Error loading content: ${fetchError.message}`);
+                        setLoading(false);
                     }
-                    const text = await response.text();
-                    console.log('Local file content length:', text.length);
-                    setContent(text);
-                    setOriginalContent(text);
-                    console.log('Content loaded from local file');
 
                     // Upload the local content to Firestore for future use
-                    await uploadLocalContentToFirestore(text, textFilePath);
+                    try {
+                        // Use the text variable directly instead of the content state
+                        // This ensures we're using the freshly loaded content
+                        if (text && text.trim() !== '') {
+                            await uploadLocalContentToFirestore(text, textFilePath);
+                        }
+                    } catch (uploadError) {
+                        console.error('Error uploading content to Firestore:', uploadError);
+                    }
                 }
 
                 // Handle image
@@ -153,6 +209,17 @@ export const useFirestoreContent = (textFilePath, imagePath) => {
                 throw new Error('Invalid file path');
             }
 
+            // Check if the content is valid before uploading
+            if (!localContent || localContent.trim() === '') {
+                throw new Error('Cannot upload empty content to Firestore');
+            }
+
+            // Check if we're trying to upload a full HTML page
+            if (localContent.includes('<!DOCTYPE html>') || localContent.includes('<html') || localContent.includes('<title>')) {
+                console.error('Attempting to upload a full HTML page to Firestore');
+                throw new Error('Cannot upload full HTML page to Firestore');
+            }
+
             const docRef = doc(db, 'editablePages', docId);
             await setDoc(docRef, {
                 content: localContent,
@@ -164,6 +231,38 @@ export const useFirestoreContent = (textFilePath, imagePath) => {
             console.log('Local content uploaded to Firestore');
         } catch (err) {
             console.error('Error uploading local content to Firestore:', err);
+        }
+    };
+
+    // Clear incorrect content from Firestore
+    const clearFirestoreContent = async () => {
+        try {
+            const docId = getDocumentId(textFilePath);
+            if (!docId) {
+                throw new Error('Invalid text file path');
+            }
+
+            const docRef = doc(db, 'editablePages', docId);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const docData = docSnap.data();
+                const currentContent = docData.content;
+
+                // Check if the current content is a full HTML page
+                if (currentContent && (currentContent.includes('<!DOCTYPE html>') ||
+                                      currentContent.includes('<html') ||
+                                      currentContent.includes('<title>'))) {
+                    console.warn('Found incorrect HTML page content in Firestore, deleting document');
+                    await deleteDoc(docRef);
+                    console.log('Deleted incorrect content from Firestore');
+                    return true;
+                }
+            }
+            return false;
+        } catch (err) {
+            console.error('Error clearing Firestore content:', err);
+            return false;
         }
     };
 
@@ -183,6 +282,13 @@ export const useFirestoreContent = (textFilePath, imagePath) => {
             // Check if we're connected to the emulator
             const isEmulator = db._settings?.host?.includes('localhost');
             console.log('Saving to Firestore (emulator?):', isEmulator);
+
+            // Check if content is a full HTML page
+            if (newContent && (newContent.includes('<!DOCTYPE html>') ||
+                             newContent.includes('<html') ||
+                             newContent.includes('<title>'))) {
+                throw new Error('Cannot save full HTML page to Firestore');
+            }
 
             // Prepare document data
             const docData = {
@@ -317,6 +423,7 @@ export const useFirestoreContent = (textFilePath, imagePath) => {
         saveStatus,
         isSaving,
         saveContent,
-        saveImage
+        saveImage,
+        clearFirestoreContent
     };
 };

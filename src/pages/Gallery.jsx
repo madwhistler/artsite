@@ -7,55 +7,61 @@ import { pageVariants } from '../animations/animationVariants';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useFavorites } from '../components/FavoritesContext';
-import { Heart, ZoomIn } from 'lucide-react';
+import { useSiteFavorites } from '../components/SiteFavoritesContext';
+import { useComments } from '../components/CommentsContext';
+import { Heart, ZoomIn, MessageSquare } from 'lucide-react';
 import ImageDetailModal from '../components/ImageDetailModal';
+import CommentModal from '../components/CommentModal';
 
-// Function to generate tags from artwork data if tags are missing
-const generateTagsFromArtwork = (artwork) => {
-    const generatedTags = [];
+// Function to enhance artwork tags by adding originalId, medium, and status
+const enhanceArtworkTags = (artwork) => {
+    // Start with existing tags or an empty array
+    const existingTags = Array.isArray(artwork.tags)
+        ? [...artwork.tags]
+        : typeof artwork.tags === 'string'
+            ? artwork.tags.split(',').map(tag => tag.trim())
+            : [];
+
+    const enhancedTags = [...existingTags];
 
     // Add medium as a tag if it exists
     if (artwork.medium) {
-        generatedTags.push(artwork.medium.toLowerCase());
+        const mediumTag = artwork.medium.toLowerCase();
+        if (!enhancedTags.includes(mediumTag)) {
+            enhancedTags.push(mediumTag);
+        }
     }
 
-    // Add status as a tag if it's meaningful
-    if (artwork.status && artwork.status !== 'available' && artwork.status !== 'sold') {
-        generatedTags.push(artwork.status.toLowerCase());
-    }
-
-    // Extract potential tags from notes
-    if (artwork.notes) {
-        const noteWords = artwork.notes.toLowerCase().split(/\s+/);
-        const potentialTags = noteWords.filter(word =>
-            word.length > 3 &&
-            !['this', 'that', 'with', 'from', 'have', 'been', 'were', 'they', 'their'].includes(word)
-        );
-        generatedTags.push(...potentialTags);
-    }
-
-    // Extract potential tags from name
-    if (artwork.itemName) {
-        const nameWords = artwork.itemName.toLowerCase().split(/\s+/);
-        const potentialTags = nameWords.filter(word =>
-            word.length > 3 &&
-            !['this', 'that', 'with', 'from', 'have', 'been', 'were', 'they', 'their'].includes(word)
-        );
-        generatedTags.push(...potentialTags);
+    // Add status as a tag if it exists (including available and sold)
+    if (artwork.status) {
+        const statusTag = artwork.status.toLowerCase();
+        if (!enhancedTags.includes(statusTag)) {
+            enhancedTags.push(statusTag);
+        }
     }
 
     // Add originalId as a tag if it exists
     if (artwork.originalId) {
-        generatedTags.push(artwork.originalId.toLowerCase());
+        const idTag = artwork.originalId.toLowerCase();
+        if (!enhancedTags.includes(idTag)) {
+            enhancedTags.push(idTag);
+        }
     }
 
     // Remove duplicates
-    return [...new Set(generatedTags)];
+    return [...new Set(enhancedTags)];
 };
 
-// Updated function to handle Google Drive URLs correctly for thumbnails
-const transformGoogleDriveUrl = (url, useCacheBusting = false) => {
+// Updated function to handle both Google Drive and Firebase Storage URLs
+const transformImageUrl = (url, useCacheBusting = false) => {
     if (!url) return '';
+
+    // If it's a Firebase Storage URL (either production or emulator), return it as is
+    if (url.includes('storage.googleapis.com') ||
+        url.includes('localhost:9199')) {
+        console.log(`Using Firebase Storage URL: ${url}`);
+        return url;
+    }
 
     // If it's already a Google Photos URL, return it as is
     if (url.includes('lh3.googleusercontent.com')) {
@@ -147,8 +153,11 @@ export const Gallery = ({ title, galleryFilter }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const { toggleFavorite, isFavorite, getAllFavorites } = useFavorites();
+    const { getFavoriteCount } = useSiteFavorites();
+    const { getCommentCount } = useComments();
     const [selectedArtwork, setSelectedArtwork] = useState(null);
     const [showDetailModal, setShowDetailModal] = useState(false);
+    const [showCommentModal, setShowCommentModal] = useState(false);
     const [hoveredItem, setHoveredItem] = useState(null);
     const [visibleCount, setVisibleCount] = useState(12); // Initial batch size for progressive loading
 
@@ -221,10 +230,8 @@ export const Gallery = ({ title, galleryFilter }) => {
                             ...data
                         };
 
-                        // If tags are missing, generate them from other fields
-                        if (!artwork.tags) {
-                            artwork.tags = generateTagsFromArtwork(artwork);
-                        }
+                        // Always enhance the artwork tags with originalId, medium, and status
+                        artwork.tags = enhanceArtworkTags(artwork);
 
                         return artwork;
                     });
@@ -277,10 +284,8 @@ export const Gallery = ({ title, galleryFilter }) => {
                                     ...data
                                 };
 
-                                // If tags are missing, generate them from other fields
-                                if (!artwork.tags) {
-                                    artwork.tags = generateTagsFromArtwork(artwork);
-                                }
+                                // Always enhance the artwork tags with originalId, medium, and status
+                                artwork.tags = enhanceArtworkTags(artwork);
 
                                 return artwork;
                             });
@@ -362,6 +367,16 @@ export const Gallery = ({ title, galleryFilter }) => {
         setShowDetailModal(false);
     };
 
+    const handleCommentClick = (e, artwork) => {
+        e.stopPropagation(); // Prevent triggering the parent click handler
+        setSelectedArtwork(artwork);
+        setShowCommentModal(true);
+    };
+
+    const closeCommentModal = () => {
+        setShowCommentModal(false);
+    };
+
     return (
         <motion.div
             className="page"
@@ -406,7 +421,7 @@ export const Gallery = ({ title, galleryFilter }) => {
                         >
                             <div style={galleryStyles.imageContainer}>
                                 <img
-                                    src={transformGoogleDriveUrl(artwork.imageUrl)}
+                                    src={transformImageUrl(artwork.imageUrl)}
                                     alt={artwork.itemName}
                                     loading="lazy"
                                     style={galleryStyles.image}
@@ -431,7 +446,7 @@ export const Gallery = ({ title, galleryFilter }) => {
                                         // Add a small delay before retrying to avoid rate limits
                                         setTimeout(() => {
                                             // Use cache-busting for retries
-                                            e.target.src = transformGoogleDriveUrl(artwork.imageUrl, true);
+                                            e.target.src = transformImageUrl(artwork.imageUrl, true);
                                         }, 1000 * retryCount); // Increasing delay for each retry
                                     }}
                                 />
@@ -453,12 +468,23 @@ export const Gallery = ({ title, galleryFilter }) => {
                                             {`${artwork.dimensions.height}x${artwork.dimensions.width}, ${artwork.medium}`}
                                         </div>
                                     </div>
-                                    <div style={galleryStyles.favoriteButton} onClick={(e) => handleFavoriteClick(e, artwork.id)}>
-                                        <Heart
-                                            size={20}
-                                            color={isFavorite(artwork.id) ? '#ff0000' : '#ffffff'}
-                                            fill={isFavorite(artwork.id) ? '#ff0000' : 'transparent'}
-                                        />
+                                    <div style={{ display: 'flex', gap: '10px' }}>
+                                        <div style={galleryStyles.iconButton} onClick={(e) => handleCommentClick(e, artwork)}>
+                                            <MessageSquare
+                                                size={20}
+                                                color={'#ffffff'}
+                                            />
+                                            {getCommentCount(artwork.id) > 0 && (
+                                                <span style={galleryStyles.iconBadge}>{getCommentCount(artwork.id)}</span>
+                                            )}
+                                        </div>
+                                        <div style={galleryStyles.iconButton} onClick={(e) => handleFavoriteClick(e, artwork.id)}>
+                                            <Heart
+                                                size={20}
+                                                color={isFavorite(artwork.id) ? '#ff0000' : '#ffffff'}
+                                                fill={isFavorite(artwork.id) ? '#ff0000' : 'transparent'}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -473,7 +499,25 @@ export const Gallery = ({ title, galleryFilter }) => {
                 onClose={closeDetailModal}
                 artwork={selectedArtwork}
                 originalFileId={selectedArtwork ? extractFileId(selectedArtwork.imageUrl) : null}
+                isFavorite={selectedArtwork ? isFavorite(selectedArtwork.id) : false}
+                onToggleFavorite={() => selectedArtwork && toggleFavorite(selectedArtwork.id)}
+                favoriteCount={selectedArtwork ? getFavoriteCount(selectedArtwork.id) : 0}
+                commentCount={selectedArtwork ? getCommentCount(selectedArtwork.id) : 0}
+                onCommentClick={() => {
+                    closeDetailModal();
+                    setShowCommentModal(true);
+                }}
             />
+
+            {/* Comments modal */}
+            {selectedArtwork && (
+                <CommentModal
+                    isOpen={showCommentModal}
+                    onClose={closeCommentModal}
+                    artworkId={selectedArtwork.id}
+                    artworkName={selectedArtwork.itemName}
+                />
+            )}
         </motion.div>
     );
 };

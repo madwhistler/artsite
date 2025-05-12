@@ -10,7 +10,7 @@ const firebaseConfig = {
     apiKey: "AIzaSyDKsVUpzVhQWCV8ECH0qYqc25ouYrl9DoY",
     authDomain: "haven-artsite.firebaseapp.com",
     projectId: "haven-artsite",
-    storageBucket: "haven-artsite.firebasestorage.app",
+    storageBucket: "default-bucket",
     messagingSenderId: "583444959978",
     appId: "1:583444959978:web:c49ffc5637a372835e7d93"
 };

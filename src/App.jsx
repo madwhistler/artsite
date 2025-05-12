@@ -6,6 +6,9 @@ import { PageTransition } from './components/PageTransition';
 import { NavigationProvider } from './components/NavigationContext';
 import { LabelVisibilityProvider } from './components/LabelVisibilityContext';
 import { FavoritesProvider } from './components/FavoritesContext';
+import { SiteFavoritesProvider } from './components/SiteFavoritesContext';
+import { CommentsProvider } from './components/CommentsContext';
+import { EditorProvider } from './components/EditorContext';
 import { LabelToggle } from './components/LabelToggle';
 import {AuthProvider} from "@/components/AuthContext.jsx";
 import { PAGES } from './config';
@@ -46,8 +49,14 @@ function App() {
                 <NavigationProvider>
                     <LabelVisibilityProvider>
                         <FavoritesProvider>
-                            <LabelToggle />
-                            <AppRoutes />
+                            <SiteFavoritesProvider>
+                                <EditorProvider>
+                                    <CommentsProvider>
+                                        <LabelToggle />
+                                        <AppRoutes />
+                                    </CommentsProvider>
+                                </EditorProvider>
+                            </SiteFavoritesProvider>
                         </FavoritesProvider>
                     </LabelVisibilityProvider>
                 </NavigationProvider>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Edit, Save, X } from 'lucide-react';
 
 /**
@@ -15,6 +15,21 @@ export const EditableContent = ({
     canEdit,
     sectionId
 }) => {
+    // Debug logging
+    useEffect(() => {
+        console.log(`EditableContent (${sectionId}) - content length:`, content?.length);
+        console.log(`EditableContent (${sectionId}) - content preview:`, content?.substring(0, 100));
+
+        // Check for unexpected HTML elements
+        if (content && content.includes('<title>')) {
+            console.error('Found unexpected <title> tag in content!');
+            console.log('Full content:', content);
+        }
+
+        if (content && content.includes('<div id="root">')) {
+            console.error('Found unexpected <div id="root"> in content!');
+        }
+    }, [content, sectionId]);
     return (
         <div className="editable-text-container">
             {isEditing ? (
@@ -51,7 +66,14 @@ export const EditableContent = ({
                 </>
             ) : (
                 <>
-                    <div dangerouslySetInnerHTML={{ __html: content }} />
+                    {content ? (
+                        <div
+                            dangerouslySetInnerHTML={{ __html: content }}
+                            className="editable-content-display"
+                        />
+                    ) : (
+                        <div className="editable-content-empty">No content available</div>
+                    )}
                     {canEdit && !isEditing && (
                         <div className="editable-text-controls">
                             <button

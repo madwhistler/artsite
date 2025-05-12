@@ -1,8 +1,10 @@
-﻿﻿﻿﻿﻿﻿﻿// config.js
+﻿// config.js
 import { Gallery } from './pages/Gallery';
 import { Editable } from './pages/Editable.jsx';
 import { EditableMulti } from './pages/EditableMulti.jsx';
+import { SiteFavoritesGallery } from './pages/SiteFavoritesGallery.jsx';
 import { ContactForm } from './pages/ContactForm.jsx';
+import { ContributionPage } from './pages/ContributionPage.jsx';
 
 // Grid Configuration
 export const TILE_SIZE = 96;
@@ -18,12 +20,24 @@ export const CORE_TILES = ['r1', 'g1', 'b1', 'y1'];
 // Page Definitions - indexed by tile ID
 export const PAGES = {
     'r1': {
-        title: 'Beauty',
-        path: '/beauty',
-        component: Gallery,
+        title: 'BEAR',
+        path: '/bear',
+        component: EditableMulti,
         props: {
-            title: 'Beauty',
-            galleryFilter: ['bear']
+            title: 'One Who Bears',
+            pageId: 'bear',
+            sections: [
+                {
+                    image: '/images/inbear.jpg',
+                    align: 'right',
+                    content: '/content/OneWhoBears.html'
+                },
+                {
+                    image: '/images/beardrawing.jpg',
+                    align: 'left',
+                    content: '/content/DrawingInBear.html'
+                }
+            ]
         }
     },
     'g1': {
@@ -41,29 +55,19 @@ export const PAGES = {
         component: Editable,
         props: {
             title: 'Lavanic Art & Language',
-            image: '/lavanic-scroll.jpg',
-            textFile: '/Lavanism.html'
+            image: '/images/lavanic-scroll.jpg',
+            textFile: '/content/Lavanism.html'
         }
     },
     'y1': {
         title: 'You + Me',
         path: '/youme',
-        component: EditableMulti,
+        component: Editable,
         props: {
-            title: 'You + Me',
+            title: 'You & Me',
             pageId: 'youme',
-            sections: [
-                {
-                    image: '/Haven.jpeg',
-                    align: 'right',
-                    content: '/ArtistBio.html'
-                },
-                {
-                    image: '/Haven2.jpeg',
-                    align: 'left',
-                    content: '/ArtistStatement.html'
-                }
-            ]
+            image: '/images/well-loop.gif',
+            textFile: '/content/YouAndMe.html'
         }
     },
     'r2': {
@@ -76,21 +80,21 @@ export const PAGES = {
         }
     },
     'r3': {
-        title: 'Atlanta',
-        path: '/r3',
+        title: 'ABSTRACT',
+        path: '/abstract',
         component: Gallery,
         props: {
-            title: 'Atlanta',
-            galleryFilter: ['atlanta']
+            title: 'Abstracts',
+            galleryFilter: ['abstract']
         }
     },
     'r4': {
-        title: 'Cat',
-        path: '/cat',
+        title: 'BEARS',
+        path: '/bears',
         component: Gallery,
         props: {
-            title: 'Cat Series',
-            galleryFilter: ['cat']
+            title: 'Drawings in BEAR',
+            galleryFilter: ['bear']
         }
     },
     'r5': {
@@ -130,30 +134,151 @@ export const PAGES = {
         }
     },
     'r9': {
-        title: 'R9',
-        path: '/r9',
+        title: 'Figure',
+        path: '/figure',
         component: Gallery,
         props: {
-            title: 'r9',
-            galleryFilter: ['SCHOOL'] // Kept as single item array for backward compatibility
+            title: 'Figure Works',
+            galleryFilter: ['figure'] // Kept as single item array for backward compatibility
+        }
+    },
+    'g2': {
+        title: 'CAT',
+        path: '/cat',
+        component: Gallery,
+        props: {
+            title: 'Cat Series',
+            galleryFilter: ['cat']
+        }
+    },
+    'g3': {
+        title: 'Cloth',
+        path: '/cloth',
+        component: Gallery,
+        props: {
+            title: 'Textiles',
+            galleryFilter: ['textiles']
+        }
+    },
+    'g4': {
+        title: 'Oils',
+        path: '/oils',
+        component: Gallery,
+        props: {
+            title: 'Oil Paintings',
+            galleryFilter: ['oil']
+        }
+    },
+    'g5':  {
+        title: 'Atlanta',
+        path: '/r3',
+        component: Gallery,
+        props: {
+            title: 'Atlanta',
+            galleryFilter: ['atlanta']
+        }
+    },
+    'g6': {
+        title: 'Prints',
+        path: '/prints',
+        component: Gallery,
+        props: {
+            title: 'Prints',
+            galleryFilter: ['print']
         }
     },
     'y2': {
-        title: 'Favorites',
-        path: '/favorites',
+        title: 'Me',
+        path: '/me',
+        component: EditableMulti,
+        props: {
+            title: 'Me',
+            pageId: 'me',
+            sections: [
+                {
+                    image: '/images/Haven.jpeg',
+                    align: 'right',
+                    content: '/content/ArtistBio.html'
+                },
+                {
+                    image: '/images/Haven2.jpeg',
+                    align: 'left',
+                    content: '/content/ArtistStatement.html'
+                }
+            ]
+        }
+    },
+    'y3': {
+        title: 'You',
+        path: '/you',
         component: Gallery,
         props: {
-            title: 'Favorites',
+            title: 'Your Favorites',
             galleryFilter: 'SELECTED' // Keep this special case as is
         }
     },
     'y4': {
-        title: 'Contact',
+        title: 'We',
         path: '/contact',
         component: ContactForm,
         props: {
             emailTo: 'eilidh.haven@outlook.com',
-            backgroundAnimation: '/Contact_Background.mp4'
+            backgroundAnimation: '/animations/Contact_Background.mp4'
+        }
+    },
+    'y5': {
+        title: 'Current',
+        path: '/current',
+        component: EditableMulti,
+        props: {
+            title: 'Current Projects',
+            pageId: 'current',
+            sections: [
+                {
+                    image: '/images/bubble-blowers-1.jpg',
+                    align: 'right',
+                    content: '/content/bb1.html'
+                },
+                {
+                    image: '/images/bubble-blowers-2.jpg',
+                    align: 'left',
+                    content: '/content/bb2.html'
+                },
+                {
+                    image: '/images/bubble-blowers-3.jpg',
+                    align: 'left',
+                    content: '/content/bb3.html'
+                }
+            ]
+        }
+    },
+    'y6': {
+        title: 'LOVED',
+        path: '/loved',
+        component: SiteFavoritesGallery,
+        props: {
+            title: 'Most Loved Artworks'
+        }
+    },
+    'y7':  {
+        title: 'ROCK',
+        path: '/rock',
+        component: ContributionPage,
+        props: {
+            backgroundAnimation: '/animations/Mihu_Frame.mp4',
+            image: '/images/moneyrock.png',
+            textFile: '/content/SupportContent.html',
+            anonymous: true
+        }
+    },
+    'y8':  {
+        title: 'COMMISSIONS',
+        path: '/commissions',
+        component: ContributionPage,
+        props: {
+            image: '/images/running-cat.gif',
+            textFile: '/content/Commissions.html',
+            anonymous: false
         }
     },
     'b2': {
@@ -162,8 +287,8 @@ export const PAGES = {
         component: Editable,
         props: {
             title: 'Lavanic Translation',
-            image: '/lavanic-scroll.jpg',
-            textFile: '/Translation.html'
+            image: '/images/lavanic-scroll.jpg',
+            textFile: '/content/Translation.html'
         }
     },
     'b3': {
@@ -181,31 +306,11 @@ export const PAGES = {
         component: Editable,
         props: {
             title: 'Paradox Path',
-            image: '/paradoxpath.jpg',
-            textFile: '/ParadoxPath.html'
+            image: '/images/paradoxpath.jpg',
+            textFile: '/content/ParadoxPath.html'
         }
     },
-    'b5': {
-        title: 'BEAR',
-        path: '/bear',
-        component: EditableMulti,
-        props: {
-            title: 'One Who Bears',
-            pageId: 'bear',
-            sections: [
-                {
-                    image: '/inbear.jpg',
-                    align: 'right',
-                    content: '/OneWhoBears.html'
-                },
-                {
-                    image: '/beardrawing.jpg',
-                    align: 'left',
-                    content: '/DrawingInBear.html'
-                }
-            ]
-        }
-    }
+    'b5': {}
 };
 
 
@@ -220,84 +325,84 @@ export const ANIMATION_TYPES = {
 // Animation Definitions
 export const ANIMATIONS = {
     'r1': [
-        { type: ANIMATION_TYPES.TILE, src: '/Green_Idle.mp4' },
-        { type: ANIMATION_TYPES.EXPANSION, src: '/Green_Up-left.mp4' },
-        { type: ANIMATION_TYPES.CONTRACTION, src: '/Green_Up-left_Reverse.mp4' }
+        { type: ANIMATION_TYPES.TILE, src: '/animations/Green_Idle.mp4' },
+        { type: ANIMATION_TYPES.EXPANSION, src: '/animations/Green_Up-left.mp4' },
+        { type: ANIMATION_TYPES.CONTRACTION, src: '/animations/Green_Up-left_Reverse.mp4' }
     ],
     'r2': [
-        { type: ANIMATION_TYPES.EXPANSION, src: '/Green_Down-left.mp4' },
-        { type: ANIMATION_TYPES.CONTRACTION, src: '/Green_Down-left_Reverse.mp4' }
+        { type: ANIMATION_TYPES.EXPANSION, src: '/animations/Green_Down-left.mp4' },
+        { type: ANIMATION_TYPES.CONTRACTION, src: '/animations/Green_Down-left_Reverse.mp4' }
     ],
     'r3': [
-        { type: ANIMATION_TYPES.EXPANSION, src: '/Green_Up-left.mp4' },
-        { type: ANIMATION_TYPES.CONTRACTION, src: '/Green_Up-left_Reverse.mp4' },
-        { type: ANIMATION_TYPES.BACKGROUND, src: '/Mihu_Frame.mp4', scale: 1.0, position: 'center' }
+        { type: ANIMATION_TYPES.EXPANSION, src: '/animations/Green_Up-left.mp4' },
+        { type: ANIMATION_TYPES.CONTRACTION, src: '/animations/Green_Up-left_Reverse.mp4' },
+        { type: ANIMATION_TYPES.BACKGROUND, src: '/animations/Mihu_Frame.mp4', scale: 1.0, position: 'center' }
     ],
     'r4': [
-        { type: ANIMATION_TYPES.EXPANSION, src: '/Green_Up-right.mp4' },
-        { type: ANIMATION_TYPES.CONTRACTION, src: '/Green_Up-right_Reverse.mp4' }
+        { type: ANIMATION_TYPES.EXPANSION, src: '/animations/Green_Up-right.mp4' },
+        { type: ANIMATION_TYPES.CONTRACTION, src: '/animations/Green_Up-right_Reverse.mp4' }
     ],
     'g1': [
-        { type: ANIMATION_TYPES.TILE, src: '/Blue_Idle.mp4' },
-        { type: ANIMATION_TYPES.EXPANSION, src: '/Blue_Up-right.mp4' },
-        { type: ANIMATION_TYPES.CONTRACTION, src: '/Blue_Up-right_Reverse.mp4' },
+        { type: ANIMATION_TYPES.TILE, src: '/animations/Blue_Idle.mp4' },
+        { type: ANIMATION_TYPES.EXPANSION, src: '/animations/Blue_Up-right.mp4' },
+        { type: ANIMATION_TYPES.CONTRACTION, src: '/animations/Blue_Up-right_Reverse.mp4' },
     ],
     'g2': [
-        { type: ANIMATION_TYPES.EXPANSION, src: '/Blue_Up-left.mp4' },
-        { type: ANIMATION_TYPES.CONTRACTION, src: '/Blue_Up-left_Reverse.mp4' }
+        { type: ANIMATION_TYPES.EXPANSION, src: '/animations/Blue_Up-left.mp4' },
+        { type: ANIMATION_TYPES.CONTRACTION, src: '/animations/Blue_Up-left_Reverse.mp4' }
     ],
     'g3': [
-        { type: ANIMATION_TYPES.EXPANSION, src: '/Blue_Up-right.mp4' },
-        { type: ANIMATION_TYPES.CONTRACTION, src: '/Blue_Up-right_Reverse.mp4' },
-        { type: ANIMATION_TYPES.BACKGROUND, src: '/Mihu_Frame.mp4', scale: 1.0, position: 'center' }
+        { type: ANIMATION_TYPES.EXPANSION, src: '/animations/Blue_Up-right.mp4' },
+        { type: ANIMATION_TYPES.CONTRACTION, src: '/animations/Blue_Up-right_Reverse.mp4' },
+        { type: ANIMATION_TYPES.BACKGROUND, src: '/animations/Mihu_Frame.mp4', scale: 1.0, position: 'center' }
     ],
     'g4': [
-        { type: ANIMATION_TYPES.EXPANSION, src: '/Blue_Down-right.mp4' },
-        { type: ANIMATION_TYPES.CONTRACTION, src: '/Blue_Down-right_Reverse.mp4' }
+        { type: ANIMATION_TYPES.EXPANSION, src: '/animations/Blue_Down-right.mp4' },
+        { type: ANIMATION_TYPES.CONTRACTION, src: '/animations/Blue_Down-right_Reverse.mp4' }
     ],
     'b1': [
-        { type: ANIMATION_TYPES.TILE, src: '/Pink_Idle.mp4' },
-        { type: ANIMATION_TYPES.EXPANSION, src: '/Pink_Down-right.mp4' },
-        { type: ANIMATION_TYPES.CONTRACTION, src: '/Pink_Down-right_Reverse.mp4' },
-        { type: ANIMATION_TYPES.BACKGROUND, src: '/Lavanic_Border.mp4', scale: 1.0, position: 'top' }
+        { type: ANIMATION_TYPES.TILE, src: '/animations/Pink_Idle.mp4' },
+        { type: ANIMATION_TYPES.EXPANSION, src: '/animations/Pink_Down-right.mp4' },
+        { type: ANIMATION_TYPES.CONTRACTION, src: '/animations/Pink_Down-right_Reverse.mp4' },
+        { type: ANIMATION_TYPES.BACKGROUND, src: '/animations/Lavanic_Border.mp4', scale: 1.0, position: 'top' }
     ],
     'b2': [
-        { type: ANIMATION_TYPES.EXPANSION, src: '/Pink_Up-right.mp4' },
-        { type: ANIMATION_TYPES.CONTRACTION, src: '/Pink_Up-right_Reverse.mp4' },
-        { type: ANIMATION_TYPES.BACKGROUND, src: '/Lavanic_Border.mp4', scale: 1.0, position: 'bottom' }
+        { type: ANIMATION_TYPES.EXPANSION, src: '/animations/Pink_Up-right.mp4' },
+        { type: ANIMATION_TYPES.CONTRACTION, src: '/animations/Pink_Up-right_Reverse.mp4' },
+        { type: ANIMATION_TYPES.BACKGROUND, src: '/animations/Lavanic_Border.mp4', scale: 1.0, position: 'bottom' }
     ],
     'b3': [
-        { type: ANIMATION_TYPES.EXPANSION, src: '/Pink_Down-right.mp4' },
-        { type: ANIMATION_TYPES.CONTRACTION, src: '/Pink_Down-right_Reverse.mp4' },
-        { type: ANIMATION_TYPES.BACKGROUND, src: '/Lavanic_Border.mp4', scale: 1.0, position: 'top' }
+        { type: ANIMATION_TYPES.EXPANSION, src: '/animations/Pink_Down-right.mp4' },
+        { type: ANIMATION_TYPES.CONTRACTION, src: '/animations/Pink_Down-right_Reverse.mp4' },
+        { type: ANIMATION_TYPES.BACKGROUND, src: '/animations/Lavanic_Border.mp4', scale: 1.0, position: 'top' }
     ],
     'b4': [
-        { type: ANIMATION_TYPES.EXPANSION, src: '/Pink_Down-left.mp4' },
-        { type: ANIMATION_TYPES.CONTRACTION, src: '/Pink_Down-left_Reverse.mp4' },
-        { type: ANIMATION_TYPES.BACKGROUND, src: '/Lavanic_Border.mp4', scale: 0.5, position: 'top' }
+        { type: ANIMATION_TYPES.EXPANSION, src: '/animations/Pink_Down-left.mp4' },
+        { type: ANIMATION_TYPES.CONTRACTION, src: '/animations/Pink_Down-left_Reverse.mp4' },
+        { type: ANIMATION_TYPES.BACKGROUND, src: '/animations/Lavanic_Border.mp4', scale: 0.5, position: 'top' }
     ],
     'b6': [
-        { type: ANIMATION_TYPES.EXPANSION, src: '/Pink_Up-left.mp4' },
-        { type: ANIMATION_TYPES.CONTRACTION, src: '/Pink_Up-left_Reverse.mp4' },
-        { type: ANIMATION_TYPES.BACKGROUND, src: '/Mihu_Frame.mp4', scale: 1.0, position: 'center' }
+        { type: ANIMATION_TYPES.EXPANSION, src: '/animations/Pink_Up-left.mp4' },
+        { type: ANIMATION_TYPES.CONTRACTION, src: '/animations/Pink_Up-left_Reverse.mp4' },
+        { type: ANIMATION_TYPES.BACKGROUND, src: '/animations/Mihu_Frame.mp4', scale: 1.0, position: 'center' }
     ],
     'y1': [
-        { type: ANIMATION_TYPES.TILE, src: '/Orange_Idle.mp4' },
-        { type: ANIMATION_TYPES.EXPANSION, src: '/Orange_Down-left.mp4' },
-        { type: ANIMATION_TYPES.CONTRACTION, src: '/Orange_Down-left_Reverse.mp4' },
-        { type: ANIMATION_TYPES.BACKGROUND, src: '/Mihu_Frame.mp4', scale: 1.0, position: 'center' }
+        { type: ANIMATION_TYPES.TILE, src: '/animations/Orange_Idle.mp4' },
+        { type: ANIMATION_TYPES.EXPANSION, src: '/animations/Orange_Down-left.mp4' },
+        { type: ANIMATION_TYPES.CONTRACTION, src: '/animations/Orange_Down-left_Reverse.mp4' },
+        { type: ANIMATION_TYPES.BACKGROUND, src: '/animations/Mihu_Frame.mp4', scale: 1.0, position: 'center' }
     ],
     'y2': [
-        { type: ANIMATION_TYPES.EXPANSION, src: '/Orange_Down-right.mp4' },
-        { type: ANIMATION_TYPES.CONTRACTION, src: '/Orange_Down-right_Reverse.mp4' },
+        { type: ANIMATION_TYPES.EXPANSION, src: '/animations/Orange_Down-right.mp4' },
+        { type: ANIMATION_TYPES.CONTRACTION, src: '/animations/Orange_Down-right_Reverse.mp4' },
      ],
     'y3': [
-        { type: ANIMATION_TYPES.EXPANSION, src: '/Orange_Down-left.mp4' },
-        { type: ANIMATION_TYPES.CONTRACTION, src: '/Orange_Down-left_Reverse.mp4' },
+        { type: ANIMATION_TYPES.EXPANSION, src: '/animations/Orange_Down-left.mp4' },
+        { type: ANIMATION_TYPES.CONTRACTION, src: '/animations/Orange_Down-left_Reverse.mp4' },
     ],
     'y4': [
-        { type: ANIMATION_TYPES.EXPANSION, src: '/Orange_Up-left.mp4' },
-        { type: ANIMATION_TYPES.CONTRACTION, src: '/Orange_Up-left_Reverse.mp4' }
+        { type: ANIMATION_TYPES.EXPANSION, src: '/animations/Orange_Up-left.mp4' },
+        { type: ANIMATION_TYPES.CONTRACTION, src: '/animations/Orange_Up-left_Reverse.mp4' }
     ],
 };
 
@@ -321,7 +426,8 @@ export const EXPANSION_SETS = {
     'y1': ['y4', 'y3', 'y1', 'y2'],
     'y2': ['y2', 'y5', 'b4', 'b9'],
     'y3': ['y8', 'y7', 'y3', 'y6'],
-    'y4': ['r5', 'y9', 'y4', 'r2']
+    'y4': ['r5', 'y9', 'y4', 'r2'],
+    'y5': ['y2', 'y5', 'b4', 'b9']
 };
 
 export const GRID_LAYOUT = [

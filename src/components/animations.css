@@ -14,14 +14,6 @@
     z-index: 5; /* Lower z-index to ensure it appears below grid and tile elements */
 }
 
-/* Special handling for Lavanic_Border.mp4 */
-.background-video[src*="Lavanic_Border.mp4"] {
-    width: auto !important;
-    height: auto !important;
-    max-width: 100% !important;
-    object-fit: contain !important;
-}
-
 .preserve-aspect-ratio {
     object-fit: contain !important;
     width: auto !important;

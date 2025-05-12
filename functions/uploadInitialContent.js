@@ -31,8 +31,8 @@ exports.uploadInitialContent = functions.https.onCall(async (data, context) => {
 
     const contentMappings = [
         {
-            textFile: 'public/ArtistBio.html',
-            imagePath: 'public/ArtistPhoto.svg',
+            textFile: 'public/content/ArtistBio.html',
+            imagePath: 'public/images/ArtistPhoto.svg',
             firestoreId: 'ArtistBio.html',
             storagePath: 'editablePages/ArtistPhoto.svg'
         }

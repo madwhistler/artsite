@@ -17,7 +17,7 @@ import './ContactForm.css';
  */
 export const ContactForm = ({
   emailTo = "eilidh.haven@outlook.com",
-  backgroundAnimation = "/Mihu_Frame.mp4"
+  backgroundAnimation = "/animations/Mihu_Frame.mp4"
 }) => {
   const { currentUser } = useAuth();
   const { isBackNavigation } = useContext(NavigationContext);
@@ -173,6 +173,7 @@ export const ContactForm = ({
             </div>
           ) : (
             <form ref={formRef} onSubmit={handleSubmit} className="contact-form">
+              <div><h1>Connections Are Cool! Say Hi!</h1></div>
               <div className="form-group">
                 <input
                   type="text"
