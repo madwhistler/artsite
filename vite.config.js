@@ -30,6 +30,14 @@ export default defineConfig({
       input: {
         main: path.resolve(__dirname, 'index.html')
       }
+    },
+    // Disable minification warnings for external libraries
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        // Suppress eval warnings
+        warnings: false
+      }
     }
   },
   esbuild: {
@@ -43,6 +51,7 @@ export default defineConfig({
         '.js': 'jsx',
         '.jsx': 'jsx'
       }
-    }
+    },
+    include: ['@lottiefiles/react-lottie-player']
   }
 })

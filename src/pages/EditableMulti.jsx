@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../components/AuthContext';
+import { useEditor } from '../components/EditorContext';
 import { useFirestoreMultiContent } from '../hooks/useFirestoreMultiContent';
 import { EditableSection } from '../components/editable/EditableSection';
 import '../components/editable/EditableSection.css';
@@ -14,6 +15,7 @@ import './Editable.css';
  */
 export const EditableMulti = ({ title, sections = [], pageId }) => {
     const { currentUser } = useAuth();
+    const { isEditor } = useEditor();
     const [editingSectionId, setEditingSectionId] = useState(null);
 
     // Use our custom hook to handle Firestore content
@@ -27,17 +29,10 @@ export const EditableMulti = ({ title, sections = [], pageId }) => {
         saveSectionImage
     } = useFirestoreMultiContent(pageId || title, sections);
 
-    // List of email addresses allowed to edit content
-    const editors = [
-        'madwhistler.morris@gmail.com',
-        // Add more editor emails as needed
-    ];
-
     // Check if the current user is allowed to edit
     const canEdit = () => {
         if (!currentUser) return false;
-        // Check if user's email is in the editors list
-        return editors.includes(currentUser.email);
+        return isEditor;
     };
 
     // No need for the useEffect to load sections - our hook handles that

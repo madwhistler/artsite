@@ -1,0 +1,56 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow read access to artwork collection for everyone
+    match /artwork/{document} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.admin == true;
+    }
+
+    // Allow read access to editablePages for everyone, write for authenticated users
+    match /editablePages/{document} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Allow read access to editableImages for everyone, write for authenticated users
+    match /editableImages/{document} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Allow read access to editableBlocks for everyone, write for authenticated users
+    match /editableBlocks/{document} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // User documents - users can read/write their own data
+    // Also allow reading all user documents for site favorites calculation
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null; // Allow authenticated users to read all user docs for site favorites
+    }
+
+    // Comments - anyone can read, authenticated users can write
+    match /comments/{document} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null &&
+        (request.auth.uid == resource.data.userId ||
+         request.auth.token.email in ['madwhistler.morris@gmail.com', 'eilidh.haven@outlook.com']);
+    }
+
+    // Mail collection for sending emails - authenticated users can write
+    match /mail/{document} {
+      allow write: if request.auth != null;
+      allow read: if false; // Email documents should not be readable
+    }
+
+    // Default deny all other collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

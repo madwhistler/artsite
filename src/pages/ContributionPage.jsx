@@ -10,6 +10,7 @@ import { EditableContent } from '../components/editable/EditableContent';
 import { EditableImage } from '../components/editable/EditableImage';
 import { useEditor } from '../components/EditorContext';
 import './Editable.css';
+import './ContributionPage.css';
 
 /**
  * Contribution Page Component with editable content
@@ -135,42 +136,15 @@ export const ContributionPage = ({
       animate="animate"
       exit="exit"
       variants={pageVariants(isBackNavigation)}
-      style={{
-        ...styles.pageContainer,
-        backgroundColor: '#000',
-        color: '#fff',
-        position: 'relative',
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'flex-start',
-        padding: '40px 20px',
-        overflowX: 'hidden' // Prevent horizontal scrolling on the main page
-      }}
     >
       {/* Background animation */}
       {backgroundAnimation && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          zIndex: 0,
-          opacity: 0.3,
-          overflow: 'hidden'
-        }}>
+        <div className="contribution-background">
           <video
             autoPlay
             loop
             muted
             playsInline
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover'
-            }}
           >
             <source src={backgroundAnimation} type="video/mp4" />
             Your browser does not support the video tag.
@@ -179,55 +153,23 @@ export const ContributionPage = ({
       )}
 
       {/* Content container - with scrollable area */}
-      <div style={{
-        position: 'relative',
-        zIndex: 1,
-        maxWidth: '800px',
-        width: '100%',
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
-        borderRadius: '10px',
-        padding: '30px',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)',
-        marginBottom: '40px',
-        maxHeight: '80vh', // Limit height to 80% of viewport
-        overflowY: 'auto', // Enable vertical scrolling
-        display: 'flex',
-        flexDirection: 'column'
-      }}>
+      <div className="contribution-content">
         {loading ? (
           <div className="editable-loading">Loading content...</div>
         ) : error ? (
           <div className="editable-error">Error loading content: {error}</div>
         ) : showThankYou ? (
-          <div style={{ textAlign: 'center' }}>
-            <h1 style={{
-              fontSize: '2.5rem',
-              marginBottom: '20px',
-              color: '#f8c630'
-            }}>
+          <div className="thank-you-container">
+            <h1 className="thank-you-title">
               Thank You!
             </h1>
-            <p style={{
-              fontSize: '1.2rem',
-              lineHeight: '1.6',
-              marginBottom: '30px'
-            }}>
+            <p className="thank-you-message">
               Your contribution of ${contributionAmount.toFixed(2)} has been received and is deeply appreciated.
               Your support helps make this artistic journey possible.
             </p>
             <button
               onClick={handleMakeAnother}
-              style={{
-                backgroundColor: '#f8c630',
-                color: '#000',
-                border: 'none',
-                padding: '12px 24px',
-                borderRadius: '5px',
-                fontSize: '1rem',
-                cursor: 'pointer',
-                fontWeight: 'bold',
-                transition: 'all 0.2s ease'
-              }}
+              className="thank-you-button"
             >
               You are Welcome!
             </button>
@@ -259,11 +201,7 @@ export const ContributionPage = ({
             />
 
             {/* Contribution form */}
-            <div style={{
-              marginTop: '30px',
-              clear: 'both',
-              paddingBottom: '20px' // Add padding at the bottom for better scrolling
-            }}>
+            <div className="contribution-form-container">
               <ContributionForm
                 currentUser={currentUser}
                 onSuccess={handleSuccess}
@@ -281,16 +219,7 @@ export const ContributionPage = ({
           {error && error.includes('HTML page') && (
             <button
               onClick={handleClearContent}
-              style={{
-                marginLeft: '10px',
-                padding: '5px 10px',
-                backgroundColor: '#f44336',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '12px'
-              }}
+              className="clear-content-button"
             >
               Clear Incorrect Content
             </button>

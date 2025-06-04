@@ -102,6 +102,7 @@ export const useFirestoreContent = (textFilePath, imagePath) => {
                 } else {
                     console.log('Document not found in Firestore, falling back to local file');
                     // Fallback to fetch from local file if not in Firestore
+                    let text = null; // Declare text variable in broader scope
                     try {
                         // Use absolute path if textFilePath doesn't start with /
                         const fetchPath = textFilePath.startsWith('/') ? textFilePath : `/${textFilePath}`;
@@ -130,7 +131,7 @@ export const useFirestoreContent = (textFilePath, imagePath) => {
                             throw new Error(`Failed to fetch content: ${response.statusText}`);
                         }
 
-                        const text = await response.text();
+                        text = await response.text();
                         console.log('Local file content length:', text.length);
                         console.log('Local file content preview:', text.substring(0, 100));
 
@@ -152,6 +153,7 @@ export const useFirestoreContent = (textFilePath, imagePath) => {
                         console.error('Error fetching local file:', fetchError);
                         setError(`Error loading content: ${fetchError.message}`);
                         setLoading(false);
+                        return; // Exit early on fetch error to prevent upload attempt
                     }
 
                     // Upload the local content to Firestore for future use

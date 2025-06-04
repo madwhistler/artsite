@@ -13,11 +13,20 @@ const MAX_EMAILS_PER_EMAIL = 3;
  * Firebase function to send contact form emails
  * Includes rate limiting by IP address and email address
  */
+// Updated function with CORS and better logging
 export const sendContactEmail = onCall({
   timeoutSeconds: 30,
   memory: '256MiB',
   maxInstances: 10,
+  invoker: 'public', // Allow unauthenticated access
+  cors: true, // Allow all origins
 }, async (request) => {
+  console.log('Contact form function called with request:', {
+    ip: request.rawRequest?.ip || 'unknown',
+    headers: request.rawRequest?.headers || {},
+    method: request.rawRequest?.method || 'unknown',
+    url: request.rawRequest?.url || 'unknown'
+  });
   try {
     console.log('Contact form submission received:', request.data);
 

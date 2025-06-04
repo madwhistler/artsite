@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../components/AuthContext';
+import { useEditor } from '../components/EditorContext';
 import { useFirestoreContent } from '../hooks/useFirestoreContent';
 import { EditableImage } from '../components/editable/EditableImage';
 import { EditableContent } from '../components/editable/EditableContent';
@@ -14,6 +15,7 @@ import './Editable.css';
  */
 export const Editable = ({ title, image, textFile }) => {
     const { currentUser } = useAuth();
+    const { isEditor } = useEditor();
     const [isEditing, setIsEditing] = useState(false);
 
     // Use our custom hook to handle Firestore content
@@ -31,17 +33,10 @@ export const Editable = ({ title, image, textFile }) => {
         saveImage
     } = useFirestoreContent(textFile, image);
 
-    // List of email addresses allowed to edit content
-    const editors = [
-        'madwhistler.morris@gmail.com',
-        // Add more editor emails as needed
-    ];
-
     // Check if the current user is allowed to edit
     const canEdit = () => {
         if (!currentUser) return false;
-        // Check if user's email is in the editors list
-        return editors.includes(currentUser.email);
+        return isEditor;
     };
 
     // Log authentication status for debugging
@@ -49,9 +44,9 @@ export const Editable = ({ title, image, textFile }) => {
         console.log('Authentication status:', currentUser ? 'Logged in' : 'Not logged in');
         if (currentUser) {
             console.log('User email:', currentUser.email);
-            console.log('Can edit:', editors.includes(currentUser.email));
+            console.log('Can edit:', isEditor);
         }
-    }, [currentUser]);
+    }, [currentUser, isEditor]);
 
     const handleEditToggle = () => {
         if (isEditing) {

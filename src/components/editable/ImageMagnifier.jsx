@@ -123,7 +123,7 @@ export const ImageMagnifier = ({ imageUrl, title, isOpen, onClose }) => {
             const initialScale = parseFloat(e.target.dataset.initialScale);
             const scaleFactor = distance / initialDistance;
             const newScale = Math.max(0.5, Math.min(5, initialScale * scaleFactor));
-            
+
             setScale(newScale);
             e.preventDefault();
         }
@@ -141,8 +141,8 @@ export const ImageMagnifier = ({ imageUrl, title, isOpen, onClose }) => {
 
     return (
         <div className="image-magnifier-overlay" onClick={onClose}>
-            <div 
-                className="image-magnifier-content" 
+            <div
+                className="image-magnifier-content"
                 onClick={e => e.stopPropagation()}
                 ref={containerRef}
                 onWheel={handleWheel}
@@ -158,28 +158,28 @@ export const ImageMagnifier = ({ imageUrl, title, isOpen, onClose }) => {
                 <div className="image-magnifier-header">
                     <h3>{title}</h3>
                     <div className="image-magnifier-controls">
-                        <button 
+                        <button
                             className="image-magnifier-button"
                             onClick={handleZoomIn}
                             title="Zoom In"
                         >
                             <ZoomIn size={20} />
                         </button>
-                        <button 
+                        <button
                             className="image-magnifier-button"
                             onClick={handleZoomOut}
                             title="Zoom Out"
                         >
                             <ZoomOut size={20} />
                         </button>
-                        <button 
+                        <button
                             className="image-magnifier-button"
                             onClick={handleRotate}
                             title="Rotate"
                         >
                             <RotateCw size={20} />
                         </button>
-                        <button 
+                        <button
                             className="image-magnifier-button"
                             onClick={onClose}
                             title="Close"
@@ -188,7 +188,7 @@ export const ImageMagnifier = ({ imageUrl, title, isOpen, onClose }) => {
                         </button>
                     </div>
                 </div>
-                <div 
+                <div
                     className="image-magnifier-container"
                     onTouchStart={handleTouchPinch}
                     onTouchMove={handleTouchPinch}
@@ -201,7 +201,6 @@ export const ImageMagnifier = ({ imageUrl, title, isOpen, onClose }) => {
                         className="image-magnifier-image"
                         style={{
                             transform: `translate(${position.x}px, ${position.y}px) scale(${scale}) rotate(${rotation}deg)`,
-                            cursor: scale > 1 ? 'grab' : 'default',
                             cursor: isDragging ? 'grabbing' : (scale > 1 ? 'grab' : 'default')
                         }}
                         draggable="false"

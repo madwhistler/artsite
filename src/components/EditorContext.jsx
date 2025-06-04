@@ -7,6 +7,7 @@ const EditorContext = createContext();
 // List of email addresses allowed to edit content and moderate comments
 const EDITOR_EMAILS = [
     'madwhistler.morris@gmail.com',
+    'eilidh.haven@outlook.com',
     // Add more editor emails as needed
 ];
 

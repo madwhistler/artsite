@@ -528,7 +528,7 @@
 @media (max-width: 767px) {
     /* Adjust scrollable container for mobile */
     .contribution-page-container > div[style*="maxHeight: 80vh"] {
-        maxHeight: 85vh !important;
+        max-height: 85vh !important;
         padding: 20px !important;
     }
 }

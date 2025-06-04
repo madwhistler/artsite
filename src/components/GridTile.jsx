@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { styles } from './styles';
-import { PAGES } from '../config';
+import { PAGES, EXPANSION_SETS } from '../config';
 import { useDeviceDetection } from '../hooks/useDeviceDetection';
 
 export const GridTile = ({
@@ -34,10 +34,14 @@ export const GridTile = ({
             if (isExpanded && PAGES[id]) {
                 // If expanded and has a page, navigate
                 navigate(PAGES[id].path);
-            } else {
-                // Otherwise trigger expansion
+            } else if (EXPANSION_SETS[id]) {
+                // If tile has expansion set, trigger expansion
                 onTap(id);
+            } else if (PAGES[id]) {
+                // If tile has no expansion set but has a page, navigate directly
+                navigate(PAGES[id].path);
             }
+            // If tile has neither expansion set nor page, do nothing
         } else {
              if (PAGES[id]) {
                 // On desktop, direct navigation on click

@@ -337,10 +337,14 @@ export const sendContactEmail = contactEmailFunc;
 import { createContributionIntent, stripeWebhook } from './stripePayments.js';
 export { createContributionIntent, stripeWebhook };
 
+// Updated function with CORS and better logging
 export const syncArtworkFromSheets = onRequest({
     timeoutSeconds: 540,
-    memory: '2GiB'
+    memory: '2GiB',
+    invoker: 'public', // Allow unauthenticated access
+    cors: true, // Allow all origins
 }, async (req, res) => {
+    console.log('Sync artwork function called ');
     try {
         if (req.method !== 'POST') {
             res.status(405).send('Method not allowed');

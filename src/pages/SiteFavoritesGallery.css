@@ -1,0 +1,37 @@
+/* SiteFavoritesGallery.css */
+
+.favorites-award-badge {
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+  color: #ffcc00;
+}
+
+.favorites-comments-section {
+  padding: 2rem;
+  background-color: #1a1a1a;
+  margin-top: 1rem;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.favorites-comments-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.favorites-comments-title {
+  margin: 0;
+  color: #ffcc00;
+}
+
+.favorites-view-all {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  color: #ffcc00;
+  font-size: 0.9rem;
+}

@@ -24,6 +24,16 @@ const storage = getStorage(app);
 
 // Check if we're in development mode and should use emulators
 const useEmulator = import.meta.env.DEV && import.meta.env.VITE_USE_EMULATOR === 'true';
+// Set authorized domains for authentication
+const authorizedDomains = [
+    'haven-artsite.web.app',
+    'havenart.studio',
+    'havenartwork.com',
+    'localhost'
+];
+
+// Log the current domain for debugging
+console.log('Current domain:', window.location.hostname);
 
 console.log('Environment:', {
     isDev: import.meta.env.DEV,

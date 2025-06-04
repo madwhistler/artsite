@@ -4,32 +4,75 @@ import { onRequest } from 'firebase-functions/v2/https';
 import Stripe from 'stripe';
 import { db } from './admin.js';
 
+// Import firebase-functions for config
+import * as functions from 'firebase-functions';
+
 // Initialize Stripe with the secret key from environment variables
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+let stripe;
+try {
+  // Try to get the Stripe secret key from different sources
+  let stripeSecretKey;
+
+  // First try process.env
+  if (process.env.STRIPE_SECRET_KEY) {
+    stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    console.log('Using Stripe secret key from process.env');
+  }
+  // Then try Firebase config
+  else {
+    try {
+      const config = functions.config();
+      if (config.stripe && config.stripe.secret_key) {
+        stripeSecretKey = config.stripe.secret_key;
+        console.log('Using Stripe secret key from Firebase config');
+      }
+    } catch (configError) {
+      console.error('Error getting Firebase config:', configError.message);
+    }
+  }
+
+  if (!stripeSecretKey) {
+    throw new Error('Stripe secret key not found in any configuration source');
+  }
+
+  stripe = new Stripe(stripeSecretKey);
+  console.log('Stripe initialized successfully');
+} catch (error) {
+  console.error('Error initializing Stripe:', error.message);
+  // Don't throw here, let the functions handle the error when they try to use stripe
+}
 
 /**
  * Create a payment intent for contributions/donations
  * Supports both anonymous and identified contributors
  */
+// Updated function with CORS and better logging
 export const createContributionIntent = onCall({
   timeoutSeconds: 30,
   memory: '256MiB',
+  invoker: 'public', // Allow unauthenticated access
+  cors: true, // Allow all origins
 }, async (request) => {
-  try {
+  console.log('Contribution intent function called with request:', {
+    ip: request.rawRequest?.ip || 'unknown',
+    headers: request.rawRequest?.headers || {},
+    method: request.rawRequest?.method || 'unknown',
+    url: request.rawRequest?.url || 'unknown'
+  }); try {
     console.log('Contribution request received:', request.data);
-    
-    const { 
-      amount, 
-      isAnonymous = false, 
+
+    const {
+      amount,
+      isAnonymous = false,
       contributorInfo = {},
       message = ''
     } = request.data;
-    
+
     // Validate amount
     if (!amount || amount <= 0) {
       throw new Error('Contribution amount must be greater than 0');
     }
-    
+
     // Create payment intent with Stripe
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(amount * 100), // Convert to cents for Stripe
@@ -42,7 +85,7 @@ export const createContributionIntent = onCall({
         message: message || ''
       }
     });
-    
+
     // Store payment intent in Firestore
     await db.collection('contributions').doc(paymentIntent.id).set({
       status: 'created',
@@ -54,7 +97,7 @@ export const createContributionIntent = onCall({
       paymentIntentId: paymentIntent.id,
       metadata: paymentIntent.metadata
     });
-    
+
     return {
       clientSecret: paymentIntent.client_secret,
       amount: amount
@@ -69,17 +112,21 @@ export const createContributionIntent = onCall({
  * Webhook to handle Stripe events
  * Primarily used to update contribution status and send thank you emails
  */
+// Updated function with CORS and better logging
 export const stripeWebhook = onRequest({
   timeoutSeconds: 60,
   memory: '256MiB',
+  invoker: 'public', // Allow unauthenticated access
+  cors: true, // Allow all origins
 }, async (req, res) => {
+  console.log('Stripe webhook function called with headers:', JSON.stringify(req.headers || {}, null, 2));
   const signature = req.headers['stripe-signature'];
-  
+
   try {
     // Verify webhook signature
     const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
     let event;
-    
+
     if (endpointSecret) {
       try {
         event = stripe.webhooks.constructEvent(
@@ -96,7 +143,7 @@ export const stripeWebhook = onRequest({
       event = req.body;
       console.log('Using webhook event without signature verification (development mode)');
     }
-    
+
     // Handle the event
     switch (event.type) {
       case 'payment_intent.succeeded':
@@ -108,7 +155,7 @@ export const stripeWebhook = onRequest({
       default:
         console.log(`Unhandled event type ${event.type}`);
     }
-    
+
     res.status(200).send({ received: true });
   } catch (error) {
     console.error('Error processing webhook:', error);
@@ -123,24 +170,24 @@ export const stripeWebhook = onRequest({
 async function handleSuccessfulPayment(paymentIntent) {
   try {
     const { id, metadata } = paymentIntent;
-    
+
     // Check if this is a contribution
     if (metadata.type === 'contribution') {
       // Update contribution status in Firestore
       const contributionRef = db.collection('contributions').doc(id);
       const contributionDoc = await contributionRef.get();
-      
+
       if (contributionDoc.exists) {
         await contributionRef.update({
           status: 'succeeded',
           updatedAt: new Date()
         });
-        
+
         // Send thank you email if not anonymous
         if (metadata.isAnonymous !== 'true' && metadata.contributorEmail) {
           await sendThankYouEmail(paymentIntent);
         }
-        
+
         // Send notification to admin
         await sendAdminNotification(paymentIntent);
       } else {
@@ -160,13 +207,13 @@ async function handleSuccessfulPayment(paymentIntent) {
 async function handleFailedPayment(paymentIntent) {
   try {
     const { id, metadata } = paymentIntent;
-    
+
     // Check if this is a contribution
     if (metadata.type === 'contribution') {
       // Update contribution status in Firestore
       const contributionRef = db.collection('contributions').doc(id);
       const contributionDoc = await contributionRef.get();
-      
+
       if (contributionDoc.exists) {
         await contributionRef.update({
           status: 'failed',
@@ -191,7 +238,7 @@ async function sendThankYouEmail(paymentIntent) {
   try {
     const { metadata } = paymentIntent;
     const amount = paymentIntent.amount / 100; // Convert from cents
-    
+
     // Create email data for firestore-send-email extension
     const emailData = {
       to: metadata.contributorEmail,
@@ -209,11 +256,11 @@ async function sendThankYouEmail(paymentIntent) {
         `
       }
     };
-    
+
     // Use the firestore-send-email extension
     const emailRef = db.collection('mail').doc();
     await emailRef.set(emailData);
-    
+
     console.log('Thank you email sent to:', metadata.contributorEmail);
   } catch (error) {
     console.error('Error sending thank you email:', error);
@@ -230,7 +277,7 @@ async function sendAdminNotification(paymentIntent) {
     const { metadata } = paymentIntent;
     const amount = paymentIntent.amount / 100; // Convert from cents
     const adminEmail = process.env.DEFAULT_EMAIL_TO || 'eilidh.haven@outlook.com';
-    
+
     // Create email data for firestore-send-email extension
     const emailData = {
       to: adminEmail,
@@ -249,11 +296,11 @@ async function sendAdminNotification(paymentIntent) {
         `
       }
     };
-    
+
     // Use the firestore-send-email extension
     const emailRef = db.collection('mail').doc();
     await emailRef.set(emailData);
-    
+
     console.log('Admin notification email sent to:', adminEmail);
   } catch (error) {
     console.error('Error sending admin notification:', error);

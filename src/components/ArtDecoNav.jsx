@@ -3,6 +3,7 @@ import { GridTile } from './GridTile';
 import { AnimationOverlay } from './AnimationOverlay';
 import { TileLabel } from './TileLabel';
 import { styles } from './styles';
+import './ArtDecoNav.css';
 import {
     INITIAL_ACTIVE_TILES,
     GRID_LAYOUT,
@@ -18,7 +19,7 @@ import { useDeviceDetection } from '../hooks/useDeviceDetection';
 export const ArtDecoNav = () => {
     const { isMobile } = useDeviceDetection();
     const [expandedTile, setExpandedTile] = useState(null);
-
+    const [gridOffset, setGridOffset] = useState({ x: 0, y: 0 });
     const navigationState = useNavigationState(INITIAL_ACTIVE_TILES);
     const {
         hoveredTile,
@@ -46,11 +47,70 @@ export const ArtDecoNav = () => {
         getExpansionSet
     } = useNavigationControls(navigationState);
 
+    // Calculate grid offset for mobile recentering based on actual tile positions
+    const calculateGridOffset = useCallback((tileId) => {
+        if (!isMobile || !tileId) return { x: 0, y: 0 };
+
+        // Find the tile's position in the grid
+        let tileRow = -1, tileCol = -1;
+        for (let row = 0; row < GRID_LAYOUT.length; row++) {
+            for (let col = 0; col < GRID_LAYOUT[row].length; col++) {
+                if (GRID_LAYOUT[row][col] === tileId) {
+                    tileRow = row;
+                    tileCol = col;
+                    break;
+                }
+            }
+            if (tileRow !== -1) break;
+        }
+
+        if (tileRow === -1 || tileCol === -1) return { x: 0, y: 0 };
+
+        // Only recenter for tiles ending in 2, 3, 4
+        const tileNumber = tileId.slice(-1);
+        if (!['2', '3', '4'].includes(tileNumber)) {
+            return { x: 0, y: 0 }; // Center tiles (ending in 1) return to center
+        }
+
+        // Calculate offset based on tile position relative to center (2.5, 2.5)
+        const centerRow = 2.5;
+        const centerCol = 2.5;
+
+        // If tile is left of center, shift right to show it better
+        // If tile is right of center, shift left to show it better
+        // If tile is above center, shift down to show it better
+        // If tile is below center, shift up to show it better
+
+        let offsetX = 0, offsetY = 0;
+
+        if (tileCol < centerCol) {
+            offsetX = 70; // Shift right to show left tiles
+        } else if (tileCol > centerCol) {
+            offsetX = -70; // Shift left to show right tiles
+        }
+
+        if (tileRow < centerRow) {
+            offsetY = 70; // Shift down to show top tiles
+        } else if (tileRow > centerRow) {
+            offsetY = -70; // Shift up to show bottom tiles
+        }
+
+        return { x: offsetX, y: offsetY };
+    }, [isMobile]);
+
     const handleLeave = useCallback((tileId) => {
         if (!isMobile) {
             setHoveredTile(null);
         }
     }, [setHoveredTile, isMobile]);
+
+    // Handle hover for desktop - keep existing behavior
+    const handleHover = useCallback((tileId) => {
+        if (!isMobile) {
+            updateActiveStates(tileId);
+        }
+        // Mobile hover is handled differently (through tap)
+    }, [isMobile, updateActiveStates]);
 
     const handleTap = useCallback((tileId) => {
         if (expandedTile === tileId) {
@@ -66,7 +126,11 @@ export const ArtDecoNav = () => {
 
         updateActiveStates(tileId);
         setExpandedTile(tileId);
-    }, [expandedTile, contractQuadrant, updateActiveStates]);
+
+        // Update grid offset for mobile recentering
+        const newOffset = calculateGridOffset(tileId);
+        setGridOffset(newOffset);
+    }, [expandedTile, contractQuadrant, updateActiveStates, calculateGridOffset]);
 
     const renderAnimations = useCallback(() => {
         const allAnimations = [];
@@ -118,45 +182,20 @@ export const ArtDecoNav = () => {
         });
     }, [activeTiles, animations]);
 
-    // Get current animation counts for debug display
-    const animationCount = animationLimiter.getTotalAnimationCount();
-    const isOverLimit = animationCount > MAX_CONCURRENT_ANIMATIONS;
+    // Animation limiter is now working properly, no need for debug display
 
     return (
-        <div style={styles.container}>
-            {/* Debug display for animation counts */}
-            <div style={{
-                position: 'fixed',
-                bottom: '20px',
-                right: '10px',
-                backgroundColor: isOverLimit ? 'rgba(255, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.5)',
-                color: 'white',
-                padding: '5px 10px',
-                borderRadius: '4px',
-                fontSize: '12px',
-                fontFamily: 'monospace',
-                zIndex: 1000,
-                pointerEvents: 'auto'
-            }}>
-                Animations: {animationCount}/{MAX_CONCURRENT_ANIMATIONS}
-                <button
-                    onClick={() => animationLimiter.enforceLimit()}
-                    style={{
-                        marginLeft: '5px',
-                        background: 'none',
-                        border: '1px solid white',
-                        color: 'white',
-                        padding: '2px 5px',
-                        fontSize: '10px',
-                        cursor: 'pointer',
-                        borderRadius: '3px'
-                    }}
-                >
-                    Enforce
-                </button>
-            </div>
+        <div style={styles.container} className="art-deco-nav-container">
+            {/* Animation counter removed as animation limiting is now working properly */}
 
-            <div style={styles.grid}>
+            <div
+                style={{
+                    ...styles.grid,
+                    transform: isMobile ? `translate(${gridOffset.x}px, ${gridOffset.y}px)` : 'none',
+                    transition: 'transform 0.3s ease-out'
+                }}
+                className="art-deco-nav-grid"
+            >
                 {GRID_LAYOUT.map((row, rowIndex) => (
                     <React.Fragment key={rowIndex}>
                         {row.map((tile, colIndex) => (
@@ -169,7 +208,7 @@ export const ArtDecoNav = () => {
                                     targets.includes(tile))}
                                 isHighlighted={tile === hoveredTile}
                                 isExpanded={tile === expandedTile}
-                                onHover={updateActiveStates}
+                                onHover={handleHover}
                                 onLeave={handleLeave}
                                 onTap={handleTap}
                             />

@@ -1,10 +1,11 @@
-﻿// config.js
+﻿//config.js
 import { Gallery } from './pages/Gallery';
 import { Editable } from './pages/Editable.jsx';
 import { EditableMulti } from './pages/EditableMulti.jsx';
 import { SiteFavoritesGallery } from './pages/SiteFavoritesGallery.jsx';
 import { ContactForm } from './pages/ContactForm.jsx';
 import { ContributionPage } from './pages/ContributionPage.jsx';
+import { VideoPage } from './pages/VideoPage.jsx';
 
 // Grid Configuration
 export const TILE_SIZE = 96;
@@ -41,12 +42,13 @@ export const PAGES = {
         }
     },
     'g1': {
-        title: 'Clarity',
-        path: '/clarity',
-        component: Gallery,
+        title: 'Themes',
+        path: '/themes',
+        component: Editable,
         props: {
-            title: 'Clarity',
-            galleryFilter: ['scroll', 'ink'] // Updated to use tag array
+            title: 'Art Themes',
+            image: '/images/rectangles.svg',
+            textFile: '/content/Themes.html'
         }
     },
     'b1': {
@@ -76,7 +78,7 @@ export const PAGES = {
         component: Gallery,
         props: {
             title: 'Light/Intuitive',
-            galleryFilter: ['intuative','light']
+            galleryFilter: ['intuitive']
         }
     },
     'r3': {
@@ -95,24 +97,6 @@ export const PAGES = {
         props: {
             title: 'Drawings in BEAR',
             galleryFilter: ['bear']
-        }
-    },
-    'r5': {
-        title: 'Weaving',
-        path: '/weaving',
-        component: Gallery,
-        props: {
-            title: 'r5',
-            galleryFilter: ['weaving','fabric']
-        }
-    },
-    'r6': {
-        title: 'Leaves',
-        path: '/leaves',
-        component: Gallery,
-        props: {
-            title: 'Leaves/Trees',
-            galleryFilter: ['leaves','tree','forest']
         }
     },
     'r7': {
@@ -170,21 +154,39 @@ export const PAGES = {
         }
     },
     'g5':  {
-        title: 'Atlanta',
+        title: 'Flora&Fauna',
         path: '/r3',
         component: Gallery,
         props: {
-            title: 'Atlanta',
-            galleryFilter: ['atlanta']
+            title: 'Flora & Fauna',
+            galleryFilter: ['flora, fauna']
         }
     },
     'g6': {
-        title: 'Prints',
-        path: '/prints',
+        title: 'Irony',
+        path: '/irony',
         component: Gallery,
         props: {
-            title: 'Prints',
-            galleryFilter: ['print']
+            title: 'Irony',
+            galleryFilter: ['ironic']
+        }
+    },
+    'g7': {
+        title: 'Objective',
+        path: '/objective',
+        component: Gallery,
+        props: {
+            title: 'Objective',
+            galleryFilter: ['objective']
+        }
+    },
+    'g8': {
+        title: 'Form',
+        path: '/form',
+        component: Gallery,
+        props: {
+            title: 'Form/Study',
+            galleryFilter: ['form', 'study']
         }
     },
     'y2': {
@@ -310,7 +312,15 @@ export const PAGES = {
             textFile: '/content/ParadoxPath.html'
         }
     },
-    'b5': {}
+    'b5': {
+        title: 'PROCESS',
+        path: '/process-vid',
+        component: VideoPage,
+        props: {
+            title: 'Making "Diagram of Irony"',
+            embedCode: '<iframe width="1129" height="635" src="https://www.youtube.com/embed/VeVBWnyjv_E" title="making "Diagram of Irony"" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>'
+        }
+    }
 };
 
 
@@ -422,12 +432,10 @@ export const EXPANSION_SETS = {
     'b2': ['g4', 'b5', 'b2', 'g9'],
     'b3': ['b3', 'b7', 'b8', 'b6'],
     'b4': ['y2', 'b9', 'b4', 'y5'],
-    'b6': ['b3', 'b6', 'b7', 'b8'],
     'y1': ['y4', 'y3', 'y1', 'y2'],
     'y2': ['y2', 'y5', 'b4', 'b9'],
     'y3': ['y8', 'y7', 'y3', 'y6'],
     'y4': ['r5', 'y9', 'y4', 'r2'],
-    'y5': ['y2', 'y5', 'b4', 'b9']
 };
 
 export const GRID_LAYOUT = [

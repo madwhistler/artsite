@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { useContext, useEffect, useState } from 'react';
 import { styles } from '../components/styles.js';
-import { galleryStyles } from './galleryStyles.js';
+import './Gallery.css';
 import { NavigationContext } from '../components/NavigationContext';
 import { pageVariants } from '../animations/animationVariants';
 import { collection, query, where, getDocs } from 'firebase/firestore';
@@ -9,8 +9,11 @@ import { db } from '../../firebase';
 import { useFavorites } from '../components/FavoritesContext';
 import { useSiteFavorites } from '../components/SiteFavoritesContext';
 import { useComments } from '../components/CommentsContext';
-import { Heart, ZoomIn, MessageSquare } from 'lucide-react';
+import { useAuth } from '../components/AuthContext';
+import { Heart, ZoomIn, MessageSquare, UserPlus } from 'lucide-react';
 import ImageDetailModal from '../components/ImageDetailModal';
+import { RegisterModal } from '../components/RegisterModal';
+import { LoginModal } from '../components/LoginModal';
 import CommentModal from '../components/CommentModal';
 
 // Function to enhance artwork tags by adding originalId, medium, and status
@@ -155,9 +158,12 @@ export const Gallery = ({ title, galleryFilter }) => {
     const { toggleFavorite, isFavorite, getAllFavorites } = useFavorites();
     const { getFavoriteCount } = useSiteFavorites();
     const { getCommentCount } = useComments();
+    const { currentUser } = useAuth();
     const [selectedArtwork, setSelectedArtwork] = useState(null);
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [showCommentModal, setShowCommentModal] = useState(false);
+    const [showRegisterModal, setShowRegisterModal] = useState(false);
+    const [showLoginModal, setShowLoginModal] = useState(false);
     const [hoveredItem, setHoveredItem] = useState(null);
     const [visibleCount, setVisibleCount] = useState(12); // Initial batch size for progressive loading
 
@@ -236,9 +242,22 @@ export const Gallery = ({ title, galleryFilter }) => {
                         return artwork;
                     });
 
-                    const filteredArtworks = allArtworks.filter(artwork =>
-                        favoriteIds.includes(artwork.id)
-                    );
+                    const filteredArtworks = allArtworks.filter(artwork => {
+                        // Check if the artwork has the 'hide' tag
+                        const artworkTags = Array.isArray(artwork.tags)
+                            ? artwork.tags
+                            : typeof artwork.tags === 'string'
+                                ? artwork.tags.split(',').map(tag => tag.trim())
+                                : [];
+
+                        // Never show artworks with the 'hide' tag
+                        if (artworkTags.some(tag => tag.toLowerCase() === 'hide')) {
+                            return false;
+                        }
+
+                        // Only include if it's in the user's favorites
+                        return favoriteIds.includes(artwork.id);
+                    });
 
                     setArtworks(filteredArtworks);
                 } else {
@@ -309,6 +328,10 @@ export const Gallery = ({ title, galleryFilter }) => {
                                    return false;
                                 }
 
+                                // Special treatment for 'hide' tag - never show artworks with this tag
+                                if (artworkTags.some(tag => tag.toLowerCase() === 'hide')) {
+                                    return false;
+                                }
 
                                 // Check if any of the artwork's tags match any of the filter tags
                                 const hasMatch = galleryFilter.some(filterTag => {
@@ -335,10 +358,30 @@ export const Gallery = ({ title, galleryFilter }) => {
                     // If we get here, we're using the original query approach
                     const q = query(artworksRef, ...conditions);
                     const querySnapshot = await getDocs(q);
-                    const artworkData = querySnapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                    }));
+                    let artworkData = querySnapshot.docs.map(doc => {
+                        const data = doc.data();
+                        const artwork = {
+                            id: doc.id,
+                            ...data
+                        };
+
+                        // Enhance tags to ensure we have the complete set
+                        artwork.tags = enhanceArtworkTags(artwork);
+
+                        return artwork;
+                    });
+
+                    // Filter out artworks with the 'hide' tag
+                    artworkData = artworkData.filter(artwork => {
+                        const artworkTags = Array.isArray(artwork.tags)
+                            ? artwork.tags
+                            : typeof artwork.tags === 'string'
+                                ? artwork.tags.split(',').map(tag => tag.trim())
+                                : [];
+
+                        // Never show artworks with the 'hide' tag
+                        return !artworkTags.some(tag => tag.toLowerCase() === 'hide');
+                    });
                     setArtworks(artworkData);
                 }
 
@@ -377,54 +420,88 @@ export const Gallery = ({ title, galleryFilter }) => {
         setShowCommentModal(false);
     };
 
+    // Modal management functions
+    const openRegisterModal = () => {
+        setShowLoginModal(false);
+        setShowRegisterModal(true);
+    };
+
+    const openLoginModal = () => {
+        setShowRegisterModal(false);
+        setShowLoginModal(true);
+    };
+
+    const closeAuthModals = () => {
+        setShowLoginModal(false);
+        setShowRegisterModal(false);
+    };
+
     return (
         <motion.div
-            className="page"
-            style={galleryStyles.container}
+            className="gallery-container"
             initial="initial"
             animate="animate"
             exit="exit"
             variants={pageVariants(isBackNavigation)}
         >
-            <div style={galleryStyles.header}>
-                <h1 className="page-title" style={styles.pageTitle}>
+            <div className="gallery-header">
+                <h1 className="page-title">
                     {title}
                 </h1>
             </div>
 
-            <div style={galleryStyles.gridContainer}>
+            <div className="gallery-grid-container">
                 {loading && (
-                    <div style={galleryStyles.loadingMessage}>Loading...</div>
+                    <div className="gallery-loading-message">Loading...</div>
                 )}
                 {error && (
-                    <div style={galleryStyles.errorMessage}>{error}</div>
+                    <div className="gallery-error-message">{error}</div>
                 )}
-                {artworks.length === 0 && !loading && !error && (
-                    <div style={galleryStyles.emptyMessage}>
-                        {galleryFilter === 'SELECTED'
-                            ? 'No favorites selected yet. Add some favorites to see them here.'
-                            : 'No artworks found for this gallery.'}
+
+                {/* Show login prompt for SELECTED gallery when user is not logged in and has favorites */}
+                {galleryFilter === 'SELECTED' && !currentUser && getAllFavorites().length > 0 && (
+                    <div className="gallery-login-prompt-banner">
+                        <div className="gallery-login-prompt">
+                            <p>I'm glad you love my artwork! Please</p>
+                            <button
+                                className="gallery-friend-button"
+                                onClick={openRegisterModal}
+                            >
+                                <UserPlus size={16} />
+                                Be My Friend
+                            </button>
+                            <p>and I'll help you keep track of your favorites!</p>
+                        </div>
                     </div>
                 )}
 
-                <div style={galleryStyles.grid}>
+                {artworks.length === 0 && !loading && !error && (
+                    <div className="gallery-empty-message">
+                        {galleryFilter === 'SELECTED'
+                            ? 'No favorites selected yet. Add some favorites to see them here.'
+                            : 'No artworks found for this gallery.'
+                        }
+                    </div>
+                )}
+
+                <div className="gallery-grid">
                     {artworks.slice(0, visibleCount).map(artwork => (
                         <div
                             key={artwork.id}
+                            className="gallery-item"
                             style={{
-                                ...galleryStyles.item,
                                 transform: hoveredItem === artwork.id ? 'scale(1.02)' : 'scale(1)'
                             }}
                             onClick={() => handleArtworkClick(artwork)}
                             onMouseEnter={() => setHoveredItem(artwork.id)}
                             onMouseLeave={() => setHoveredItem(null)}
                         >
-                            <div style={galleryStyles.imageContainer}>
+                            <div className="gallery-image-container">
                                 <img
                                     src={transformImageUrl(artwork.imageUrl)}
                                     alt={artwork.itemName}
                                     loading="lazy"
-                                    style={galleryStyles.image}
+                                    className="gallery-image"
                                     onError={(e) => {
                                         // Prevent infinite error loop by checking if already using placeholder
                                         if (e.target.dataset.retryCount >= 2 || e.target.src.includes('placeholder.com')) {
@@ -451,34 +528,34 @@ export const Gallery = ({ title, galleryFilter }) => {
                                     }}
                                 />
                                 {hoveredItem === artwork.id && (
-                                    <div style={galleryStyles.imageOverlay}>
-                                        <div style={galleryStyles.zoomIcon}>
+                                    <div className="gallery-image-overlay">
+                                        <div className="gallery-zoom-icon">
                                             <ZoomIn size={24} color="#ffffff" />
                                         </div>
                                     </div>
                                 )}
                             </div>
-                            <div style={galleryStyles.info}>
-                                <div style={galleryStyles.infoContent}>
+                            <div className="gallery-info">
+                                <div className="gallery-info-content">
                                     <div>
-                                        <div style={galleryStyles.title}>
+                                        <div className="gallery-title">
                                             {artwork.itemName}
                                         </div>
-                                        <div style={galleryStyles.details}>
+                                        <div className="gallery-details">
                                             {`${artwork.dimensions.height}x${artwork.dimensions.width}, ${artwork.medium}`}
                                         </div>
                                     </div>
                                     <div style={{ display: 'flex', gap: '10px' }}>
-                                        <div style={galleryStyles.iconButton} onClick={(e) => handleCommentClick(e, artwork)}>
+                                        <div className="gallery-icon-button" onClick={(e) => handleCommentClick(e, artwork)}>
                                             <MessageSquare
                                                 size={20}
                                                 color={'#ffffff'}
                                             />
                                             {getCommentCount(artwork.id) > 0 && (
-                                                <span style={galleryStyles.iconBadge}>{getCommentCount(artwork.id)}</span>
+                                                <span className="gallery-icon-badge">{getCommentCount(artwork.id)}</span>
                                             )}
                                         </div>
-                                        <div style={galleryStyles.iconButton} onClick={(e) => handleFavoriteClick(e, artwork.id)}>
+                                        <div className="gallery-icon-button gallery-favorite-button" onClick={(e) => handleFavoriteClick(e, artwork.id)}>
                                             <Heart
                                                 size={20}
                                                 color={isFavorite(artwork.id) ? '#ff0000' : '#ffffff'}
@@ -518,6 +595,18 @@ export const Gallery = ({ title, galleryFilter }) => {
                     artworkName={selectedArtwork.itemName}
                 />
             )}
+
+            {/* Authentication Modals */}
+            <RegisterModal
+                isOpen={showRegisterModal}
+                onClose={closeAuthModals}
+                onSwitchToLogin={openLoginModal}
+            />
+            <LoginModal
+                isOpen={showLoginModal}
+                onClose={closeAuthModals}
+                onSwitchToRegister={openRegisterModal}
+            />
         </motion.div>
     );
 };

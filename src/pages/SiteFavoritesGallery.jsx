@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { styles } from '../components/styles.js';
-import { galleryStyles } from './galleryStyles.js';
+import './Gallery.css';
 import { NavigationContext } from '../components/NavigationContext';
 import { pageVariants } from '../animations/animationVariants';
 import { collection, query, where, getDocs } from 'firebase/firestore';
@@ -15,6 +15,45 @@ import CommentModal from '../components/CommentModal';
 import CommentList from '../components/CommentList';
 import CommentForm from '../components/CommentForm';
 import { useContext } from 'react';
+
+// Function to enhance artwork tags by adding originalId, medium, and status
+const enhanceArtworkTags = (artwork) => {
+    // Start with existing tags or an empty array
+    const existingTags = Array.isArray(artwork.tags)
+        ? [...artwork.tags]
+        : typeof artwork.tags === 'string'
+            ? artwork.tags.split(',').map(tag => tag.trim())
+            : [];
+
+    const enhancedTags = [...existingTags];
+
+    // Add medium as a tag if it exists
+    if (artwork.medium) {
+        const mediumTag = artwork.medium.toLowerCase();
+        if (!enhancedTags.includes(mediumTag)) {
+            enhancedTags.push(mediumTag);
+        }
+    }
+
+    // Add status as a tag if it exists (including available and sold)
+    if (artwork.status) {
+        const statusTag = artwork.status.toLowerCase();
+        if (!enhancedTags.includes(statusTag)) {
+            enhancedTags.push(statusTag);
+        }
+    }
+
+    // Add originalId as a tag if it exists
+    if (artwork.originalId) {
+        const idTag = artwork.originalId.toLowerCase();
+        if (!enhancedTags.includes(idTag)) {
+            enhancedTags.push(idTag);
+        }
+    }
+
+    // Remove duplicates
+    return [...new Set(enhancedTags)];
+};
 
 // Updated function to handle both Google Drive and Firebase Storage URLs
 const transformImageUrl = (url, useCacheBusting = false) => {
@@ -143,16 +182,29 @@ export const SiteFavoritesGallery = ({ title }) => {
                         favoriteCount: getFavoriteCount(doc.id)
                     };
 
-                    // If tags are missing, initialize as empty array
-                    if (!artwork.tags) {
-                        artwork.tags = [];
-                    }
+                    // Enhance artwork tags with originalId, medium, and status
+                    artwork.tags = enhanceArtworkTags(artwork);
 
                     return artwork;
                 });
 
-                // Filter to only include artworks with at least 1 favorite
-                const favoriteArtworks = allArtworks.filter(artwork => artwork.favoriteCount > 0);
+                // Filter to only include artworks with at least 1 favorite and exclude those with 'hide' tag
+                const favoriteArtworks = allArtworks.filter(artwork => {
+                    // Must have at least one favorite
+                    if (artwork.favoriteCount <= 0) {
+                        return false;
+                    }
+
+                    // Convert tags to array if it's a string (comma-separated)
+                    const artworkTags = Array.isArray(artwork.tags)
+                        ? artwork.tags
+                        : typeof artwork.tags === 'string'
+                            ? artwork.tags.split(',').map(tag => tag.trim())
+                            : [];
+
+                    // Never show artworks with the 'hide' tag
+                    return !artworkTags.some(tag => tag.toLowerCase() === 'hide');
+                });
 
                 // Sort by favorite count (highest first), then by ID for ties
                 favoriteArtworks.sort((a, b) => {
@@ -202,42 +254,42 @@ export const SiteFavoritesGallery = ({ title }) => {
 
     return (
         <motion.div
-            style={galleryStyles.container}
+            className="gallery-container"
             initial="initial"
             animate="animate"
             exit="exit"
             variants={pageVariants(isBackNavigation)}
         >
-            <div style={galleryStyles.header}>
-                <h1 style={styles.heading}>{title}</h1>
+            <div className="gallery-header">
+                <h1 className="page-title">{title}</h1>
                 {loading ? (
-                    <p>Loading artworks...</p>
+                    <p className="gallery-loading-message">Loading artworks...</p>
                 ) : error ? (
-                    <p style={{ color: 'red' }}>{error}</p>
+                    <p className="gallery-error-message">{error}</p>
                 ) : artworks.length === 0 ? (
-                    <p>No artworks have been favorited yet.</p>
+                    <p className="gallery-empty-message">No artworks have been favorited yet.</p>
                 ) : null}
             </div>
 
-            <div style={{...galleryStyles.gridContainer, padding: '0 4rem 4rem 4rem'}}>
-                <div style={{...galleryStyles.grid, gridTemplateColumns: '1fr', gap: '4rem'}}>
+            <div className="gallery-grid-container" style={{padding: '0 4rem 4rem 4rem'}}>
+                <div className="gallery-grid" style={{gridTemplateColumns: '1fr', gap: '4rem'}}>
                     {artworks.map((artwork) => (
                         <div
                             key={artwork.id}
+                            className="gallery-item"
                             style={{
-                                ...galleryStyles.item,
                                 transform: hoveredItem === artwork.id ? 'scale(1.03)' : 'scale(1)'
                             }}
                             onClick={() => handleArtworkClick(artwork)}
                             onMouseEnter={() => setHoveredItem(artwork.id)}
                             onMouseLeave={() => setHoveredItem(null)}
                         >
-                            <div style={galleryStyles.imageContainer}>
+                            <div className="gallery-image-container">
                                 <img
                                     src={transformImageUrl(artwork.imageUrl)}
                                     alt={artwork.itemName}
                                     loading="lazy"
-                                    style={galleryStyles.image}
+                                    className="gallery-image"
                                     onError={(e) => {
                                         // Prevent infinite error loop by checking if already using placeholder
                                         if (e.target.dataset.retryCount >= 2 || e.target.src.includes('placeholder.com')) {
@@ -262,19 +314,19 @@ export const SiteFavoritesGallery = ({ title }) => {
                                         }, 1000 * retryCount);
                                     }}
                                 />
-                                <div style={galleryStyles.imageOverlay}>
-                                    <div style={galleryStyles.zoomIcon}>
+                                <div className="gallery-image-overlay">
+                                    <div className="gallery-zoom-icon">
                                         <ZoomIn size={24} color="#ffffff" />
                                     </div>
                                 </div>
                             </div>
-                            <div style={galleryStyles.info}>
-                                <div style={galleryStyles.infoContent}>
+                            <div className="gallery-info">
+                                <div className="gallery-info-content">
                                     <div>
-                                        <div style={galleryStyles.title}>
+                                        <div className="gallery-title">
                                             {artwork.itemName}
                                         </div>
-                                        <div style={galleryStyles.details}>
+                                        <div className="gallery-details">
                                             {`${artwork.dimensions.height}x${artwork.dimensions.width}, ${artwork.medium}`}
                                         </div>
                                         <div style={{
@@ -288,16 +340,16 @@ export const SiteFavoritesGallery = ({ title }) => {
                                         </div>
                                     </div>
                                     <div style={{ display: 'flex', gap: '10px' }}>
-                                        <div style={galleryStyles.iconButton} onClick={(e) => handleCommentClick(e, artwork)}>
+                                        <div className="gallery-icon-button" onClick={(e) => handleCommentClick(e, artwork)}>
                                             <MessageSquare
                                                 size={20}
                                                 color={'#ffffff'}
                                             />
                                             {getCommentCount(artwork.id) > 0 && (
-                                                <span style={galleryStyles.iconBadge}>{getCommentCount(artwork.id)}</span>
+                                                <span className="gallery-icon-badge">{getCommentCount(artwork.id)}</span>
                                             )}
                                         </div>
-                                        <div style={galleryStyles.iconButton} onClick={(e) => handleFavoriteClick(e, artwork.id)}>
+                                        <div className="gallery-icon-button gallery-favorite-button" onClick={(e) => handleFavoriteClick(e, artwork.id)}>
                                             <Heart
                                                 size={20}
                                                 color={isFavorite(artwork.id) ? '#ff0000' : '#ffffff'}

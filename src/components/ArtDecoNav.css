@@ -1,0 +1,9 @@
+/* Smooth transitions for recentering */
+.art-deco-nav-grid {
+    transition: transform 0.3s ease-out;
+}
+
+/* Ensure container can handle grid transforms without scrollbars */
+.art-deco-nav-container {
+    overflow: hidden;
+}

@@ -10,12 +10,14 @@ export const styles = {
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: 'black',
+        overflow: 'hidden', // Prevent scrollbars during grid transforms
     },
     grid: {
         display: 'grid',
         gridTemplateColumns: `repeat(${GRID_SIZE}, ${calcSize(1)})`,
         gap: 0,
         position: 'relative',
+        willChange: 'transform', // Optimize for transforms
     },
     tile: {
         width: `${TILE_SIZE + TILE_OVERLAP}px`,
