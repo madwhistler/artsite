@@ -9,19 +9,9 @@ import fetch from 'node-fetch';
 
 // Contact form function will be imported after Firebase Admin is initialized
 
-// Import firebase-functions using dynamic import
-let functionsV1;
-let onRequest;
-
-try {
-  const functionsModule = await import('firebase-functions');
-  functionsV1 = functionsModule.default || functionsModule;
-
-  const functionsV2Module = await import('firebase-functions/v2/https');
-  onRequest = functionsV2Module.onRequest;
-} catch (error) {
-  console.error('Error importing firebase-functions:', error);
-}
+// Import firebase-functions using static imports
+import * as functionsV1 from 'firebase-functions';
+import { onRequest } from 'firebase-functions/v2/https';
 
 // Firebase Admin is initialized in admin.js
 
@@ -173,13 +163,15 @@ async function checkImageExistsInStorage(storagePath) {
 function getStorageImageUrl(storagePath) {
     // Check if we're in the emulator environment
     const isEmulator = process.env.FUNCTIONS_EMULATOR === 'true';
-    const bucketName = process.env.FIREBASE_STORAGE_BUCKET || storage.bucket().name;
+    
+    // Hardcode the correct bucket name
+    const bucketName = 'haven-artsite.firebasestorage.app';
 
     if (isEmulator) {
         // For emulator, use the standard emulator URL format
         return `http://localhost:9199/v0/b/${bucketName}/o/${encodeURIComponent(storagePath)}?alt=media`;
     } else {
-        // For production, use the standard Storage URL format
+        // For production, use the format that matches your existing data
         return `https://storage.googleapis.com/${bucketName}/${storagePath}`;
     }
 }

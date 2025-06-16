@@ -99,6 +99,16 @@ export const PAGES = {
             galleryFilter: ['bear']
         }
     },
+    'r6': {
+        title: 'Fractals',
+        path: '/fractals-vid',
+        component: VideoPage,
+        props: {
+            title: 'My PicMix Fractals',
+            subtitle: 'See the finished results at <a href="https://www.picmix.com/profile/yogurt" target="_blank">my PicMix profile</a>',
+            embedCode: '<iframe width="560" height="315" src="https://www.youtube.com/embed/eNjYPrB1FYE?si=fGois1nkkhCyBPyI" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>'
+        }
+    },
     'r7': {
         title: 'Devotional',
         path: '/devotional',
@@ -159,7 +169,7 @@ export const PAGES = {
         component: Gallery,
         props: {
             title: 'Flora & Fauna',
-            galleryFilter: ['flora, fauna']
+            galleryFilter: ['flora', 'fauna']
         }
     },
     'g6': {

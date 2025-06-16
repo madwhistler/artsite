@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, ZoomIn, ZoomOut, RotateCw, Heart, Award, MessageSquare } from 'lucide-react';
+import { transformImageUrl, extractFileId } from '../utils/imageUtils';
 
 // Styles for the image detail modal
 const modalStyles = {

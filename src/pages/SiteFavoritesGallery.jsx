@@ -15,6 +15,7 @@ import CommentModal from '../components/CommentModal';
 import CommentList from '../components/CommentList';
 import CommentForm from '../components/CommentForm';
 import { useContext } from 'react';
+import { transformImageUrl, extractFileId } from '../utils/imageUtils';
 
 // Function to enhance artwork tags by adding originalId, medium, and status
 const enhanceArtworkTags = (artwork) => {
@@ -55,92 +56,7 @@ const enhanceArtworkTags = (artwork) => {
     return [...new Set(enhancedTags)];
 };
 
-// Updated function to handle both Google Drive and Firebase Storage URLs
-const transformImageUrl = (url, useCacheBusting = false) => {
-    if (!url) return '';
-
-    // If it's a Firebase Storage URL (either production or emulator), return it as is
-    if (url.includes('storage.googleapis.com') ||
-        url.includes('localhost:9199')) {
-        console.log(`Using Firebase Storage URL: ${url}`);
-        return url;
-    }
-
-    // If it's already a Google Photos URL, return it as is
-    if (url.includes('lh3.googleusercontent.com')) {
-        return url;
-    }
-
-    // Handle Google Drive URLs
-    if (url.includes('drive.google.com')) {
-        let fileId = null;
-
-        // Handle "open" format URLs: https://drive.google.com/open?id=FILE_ID
-        if (url.includes('open?id=')) {
-            const idParam = url.split('open?id=')[1];
-            // Extract the ID part before any additional parameters
-            fileId = idParam.split('&')[0];
-        }
-        // Handle "file" format URLs: https://drive.google.com/file/d/FILE_ID/view
-        else if (url.includes('/file/d/')) {
-            const parts = url.split('/file/d/')[1].split('/');
-            if (parts.length > 0) {
-                fileId = parts[0];
-            }
-        }
-        // Handle other formats with a generic regex
-        else {
-            const match = url.match(/[-\w]{25,}/);
-            fileId = match ? match[0] : null;
-        }
-
-        if (fileId) {
-            // For Google Drive images, use the direct thumbnail approach with moderate size
-            // This method avoids CSP issues by using Google's thumbnail API
-            // Use w0 parameter to get the original size image without cropping
-            let thumbnailUrl = `https://lh3.googleusercontent.com/d/${fileId}=w0`;
-
-            // Only add cache-busting when explicitly requested (for retries)
-            if (useCacheBusting) {
-                const cacheBuster = new Date().getTime();
-                thumbnailUrl += `?cb=${cacheBuster}`;
-            }
-
-            console.log(`Transformed Google Drive URL: ${url} -> ${thumbnailUrl}`);
-            return thumbnailUrl;
-        }
-    }
-
-    // Return original URL if no transformation was applied
-    return url;
-};
-
-// Extract file ID from Google Drive URL
-const extractFileId = (url) => {
-    if (!url) return null;
-
-    if (url.includes('drive.google.com')) {
-        // Handle "open" format URLs: https://drive.google.com/open?id=FILE_ID
-        if (url.includes('open?id=')) {
-            const idParam = url.split('open?id=')[1];
-            // Extract the ID part before any additional parameters
-            return idParam.split('&')[0];
-        }
-        else if (url.includes('/file/d/')) {
-            const parts = url.split('/file/d/')[1].split('/');
-            if (parts.length > 0) {
-                return parts[0];
-            }
-        }
-        // Handle other formats with a generic regex
-        else {
-            const match = url.match(/[-\w]{25,}/);
-            return match ? match[0] : null;
-        }
-    }
-
-    return null;
-};
+// Remove the old transformImageUrl and extractFileId functions
 
 /**
  * Site Favorites Gallery Component

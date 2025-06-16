@@ -15,8 +15,9 @@ import './VideoPage.css';
  * @param {string} title - The title of the page
  * @param {string} video - Path to the video file or embed code
  * @param {string} embedCode - Optional embed code for external videos
+ * @param {string} subtitle - Optional HTML subtitle content to display below the title
  */
-export const VideoPage = ({ title, video, embedCode }) => {
+export const VideoPage = ({ title, video, embedCode, subtitle }) => {
     const { currentUser } = useAuth();
     const { isEditor } = useEditor();
     const [isEditing, setIsEditing] = useState(false);
@@ -77,6 +78,13 @@ export const VideoPage = ({ title, video, embedCode }) => {
         >
             <div className="video-page-content">
                 <h1 className="video-page-title">{title}</h1>
+                
+                {subtitle && (
+                    <div 
+                        className="video-page-subtitle"
+                        dangerouslySetInnerHTML={{ __html: subtitle }}
+                    />
+                )}
                 
                 <EditableVideo
                     videoUrl={videoUrl}
