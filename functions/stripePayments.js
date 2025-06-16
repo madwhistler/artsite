@@ -35,12 +35,15 @@ try {
     throw new Error('Stripe secret key not found in any configuration source');
   }
 
+  // Make sure you're using the live key by checking the prefix
+  const isLiveMode = stripeSecretKey.startsWith('sk_live_');
+  console.log(`Stripe initialized in ${isLiveMode ? 'LIVE' : 'TEST'} mode`);
+  
   stripe = new Stripe(stripeSecretKey);
   console.log('Stripe initialized successfully');
 } catch (error) {
   console.error('Error initializing Stripe:', error.message);
-  // Don't throw here, let the functions handle the error when they try to use stripe
-}
+} // Don't throw here, let the functions handle the error when they try to use stripe
 
 /**
  * Create a payment intent for contributions/donations
@@ -58,7 +61,9 @@ export const createContributionIntent = onCall({
     headers: request.rawRequest?.headers || {},
     method: request.rawRequest?.method || 'unknown',
     url: request.rawRequest?.url || 'unknown'
-  }); try {
+  });
+  
+  try {
     console.log('Contribution request received:', request.data);
 
     const {
@@ -73,7 +78,18 @@ export const createContributionIntent = onCall({
       throw new Error('Contribution amount must be greater than 0');
     }
 
+    // Log Stripe initialization status
+    console.log('Stripe instance status:', stripe ? 'initialized' : 'not initialized');
+    if (!stripe) {
+      throw new Error('Stripe is not initialized properly');
+    }
+
+    // Log the mode we're operating in
+    console.log('Creating payment intent in mode:', 
+      process.env.STRIPE_SECRET_KEY?.startsWith('sk_live_') ? 'LIVE' : 'TEST');
+
     // Create payment intent with Stripe
+    console.log('Creating payment intent for amount:', amount);
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(amount * 100), // Convert to cents for Stripe
       currency: 'usd',
@@ -85,6 +101,8 @@ export const createContributionIntent = onCall({
         message: message || ''
       }
     });
+    
+    console.log('Payment intent created successfully:', paymentIntent.id);
 
     // Store payment intent in Firestore
     await db.collection('contributions').doc(paymentIntent.id).set({
@@ -97,6 +115,7 @@ export const createContributionIntent = onCall({
       paymentIntentId: paymentIntent.id,
       metadata: paymentIntent.metadata
     });
+    console.log('Payment intent stored in Firestore:', paymentIntent.id);
 
     return {
       clientSecret: paymentIntent.client_secret,
@@ -104,7 +123,16 @@ export const createContributionIntent = onCall({
     };
   } catch (error) {
     console.error('Error creating contribution payment intent:', error);
-    throw new Error(error.message);
+    // Include more details in the error response
+    if (error.type && error.type.startsWith('Stripe')) {
+      console.error('Stripe error details:', {
+        type: error.type,
+        code: error.code,
+        param: error.param,
+        detail: error.detail
+      });
+    }
+    throw new Error(`Payment processing error: ${error.message}`);
   }
 });
 
